@@ -34,7 +34,7 @@ export class ApiClient {
     endpoint: string,
     params?: Record<string, string | number>,
   ): Promise<T> {
-    const url = new URL(`${this.baseUrl}${endpoint}`);
+    const url = new URL(`${this.baseUrl}${endpoint}`, window.location.origin);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         url.searchParams.append(key, String(value));
