@@ -1,0 +1,32 @@
+# Git
+.git
+.gitignore
+
+# Environment
+.env
+.env.local
+*.env
+
+# Python
+__pycache__
+*.py[cod]
+*.egg-info
+.venv
+venv
+env
+
+# Node
+node_modules
+frontend/node_modules
+
+# Database
+*.sqlite3
+
+# IDE
+.vscode
+.idea
+
+# Docker
+docker-compose*.yml
+Makefile
+README.md

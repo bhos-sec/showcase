@@ -1,0 +1,120 @@
+# =============================================================================
+# Showcase — Production Docker Compose
+# =============================================================================
+# Usage:
+#   docker compose -f docker-compose.prod.yml up --build -d
+#   docker compose -f docker-compose.prod.yml exec backend python manage.py migrate
+#   docker compose -f docker-compose.prod.yml exec backend python manage.py createsuperuser
+# =============================================================================
+#
+# Prerequisites:
+#   1. Build the frontend: cd frontend && npm run build
+#   2. Copy build output to docker/nginx/dist/ (or adjust the volume below)
+#   3. Create a .env file from .env.example with production values
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Redis — message broker for Celery (with persistence)
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Django backend — Gunicorn production server
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile.prod
+    volumes:
+      - sqlite_data:/data
+      - static_files:/app/staticfiles
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DB_PATH=/data/db.sqlite3
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Celery worker — background task processing
+  # ---------------------------------------------------------------------------
+  celery-worker:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile.prod
+    volumes:
+      - sqlite_data:/data
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DB_PATH=/data/db.sqlite3
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    restart: unless-stopped
+    command: celery -A config worker -l warning --concurrency=2
+
+  # ---------------------------------------------------------------------------
+  # Celery Beat — periodic task scheduler
+  # ---------------------------------------------------------------------------
+  celery-beat:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile.prod
+    volumes:
+      - sqlite_data:/data
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DB_PATH=/data/db.sqlite3
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    restart: unless-stopped
+    command: celery -A config beat -l warning --scheduler django_celery_beat.schedulers:DatabaseScheduler
+
+  # ---------------------------------------------------------------------------
+  # Nginx — reverse proxy + static file server
+  # ---------------------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - static_files:/app/staticfiles:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  sqlite_data:
+  static_files:
