@@ -95,7 +95,10 @@ jobs:
 
             # Clean up old containers to free up ports
             echo "🧹 Cleaning up old containers..."
-            docker compose -f docker-compose.prod.yml --env-file .env.production down --remove-orphans || true
+            docker compose -f docker-compose.prod.yml --env-file .env.production stop || true
+            sleep 2
+            docker compose -f docker-compose.prod.yml --env-file .env.production rm -f || true
+            sleep 1
 
             # Backup database (safety measure)
             echo "📦 Backing up database..."
