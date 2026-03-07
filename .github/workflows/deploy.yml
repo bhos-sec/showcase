@@ -109,9 +109,9 @@ jobs:
             echo "🗄️  Running migrations..."
             docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python manage.py migrate
 
-            # Collect static files
+            # Collect static files (clear old files first)
             echo "📂 Collecting static files..."
-            docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python manage.py collectstatic --noinput
+            docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python manage.py collectstatic --clear --noinput
 
             # Restart Celery services
             echo "🔄 Starting Celery services..."
