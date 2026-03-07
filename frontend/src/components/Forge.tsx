@@ -53,24 +53,30 @@ export function Forge() {
               </div>
             ))
           : displayedProjects.map((project) => (
-              <div
+              <a
                 key={project.id}
-                className="group relative bg-[var(--color-bhos-navy-light)] border border-[var(--color-bhos-border)] rounded-xl p-6 overflow-hidden"
+                href={project.homepage_url || project.github_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative bg-[var(--color-bhos-navy-light)] border border-[var(--color-bhos-border)] hover:border-[var(--color-bhos-mint)] rounded-xl p-6 overflow-hidden transition-colors block"
               >
                 <div className="flex flex-col h-full">
                   <div className="flex justify-between items-start mb-4">
                     <h3 className="text-xl font-bold text-white user-select-none">
                       {project.name}
                     </h3>
-                    <span
-                      className={`px-2 py-1 text-xs font-mono rounded border ${
-                        PROJECT_STATUS_COLORS[
-                          project.status as keyof typeof PROJECT_STATUS_COLORS
-                        ]
-                      }`}
-                    >
-                      {project.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <ExternalLink className="w-4 h-4 text-[var(--color-bhos-mint)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                      <span
+                        className={`px-2 py-1 text-xs font-mono rounded border ${
+                          PROJECT_STATUS_COLORS[
+                            project.status as keyof typeof PROJECT_STATUS_COLORS
+                          ]
+                        }`}
+                      >
+                        {project.status}
+                      </span>
+                    </div>
                   </div>
 
                   <p className="text-slate-400 text-sm mb-6 flex-grow">
@@ -100,7 +106,7 @@ export function Forge() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </a>
             ))}
       </div>
     </section>
