@@ -34,7 +34,8 @@ COPY backend/ /app/
 RUN mkdir -p /data /app/staticfiles /app/logs && \
     addgroup --system django && \
     adduser --system --ingroup django django && \
-    chown -R django:django /app /data
+    chown -R django:django /app /data /app/logs && \
+    chmod -R 755 /app/logs
 
 # Collect static files.
 RUN DJANGO_SECRET_KEY=build-placeholder python manage.py collectstatic --noinput 2>/dev/null || true

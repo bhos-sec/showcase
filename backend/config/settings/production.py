@@ -48,3 +48,86 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+
+# ---------------------------------------------------------------------------
+# Logging — use console only in production (Docker captures stdout/stderr)
+# ---------------------------------------------------------------------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "[{levelname}] {name:30s} | {asctime}s | {message}",
+            "style": "{",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+        "celery": {
+            "format": "[CELERY] {levelname:8s} | {name:25s} | {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "celery_console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "celery",
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "celery": {
+            "handlers": ["celery_console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "celery.task": {
+            "handlers": ["celery_console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "celery.worker": {
+            "handlers": ["celery_console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "apps.projects": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "apps.members": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "apps.core": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
+}
