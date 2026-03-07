@@ -99,15 +99,15 @@ jobs:
             sleep 2
             docker compose -f docker-compose.prod.yml --env-file .env.production rm -f || true
             sleep 1
-            
+
             # Prune docker system to free resources
             echo "🗑️  Pruning Docker system..."
             docker system prune -f || true
-            
+
             # Check what's using port 80 and show it
             echo "📊 Checking port 80..."
             ss -tlnp | grep :80 || echo "Port 80 is free!"
-            
+
             sleep 2
 
             # Backup database (safety measure)
@@ -138,14 +138,34 @@ jobs:
             echo "🔄 Starting Celery services..."
             docker compose -f docker-compose.prod.yml --env-file .env.production up -d celery-worker celery-beat
 
-            # Verify deployment
+            # Verify deployment with retry loop
             echo "✅ Verifying deployment..."
-            sleep 5
-            HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/health/ || echo "000")
+            MAX_RETRIES=10
+            RETRY_COUNT=0
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              HEALTH=$(docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python -c "
+import urllib.request
+try:
+    response = urllib.request.urlopen('http://localhost:8000/api/health/', timeout=5)
+    print(response.getcode())
+except Exception:
+    print('000')
+" 2>&1 || echo "000")
+              
+              if [ "$HEALTH" = "200" ]; then
+                echo "✨ Deployment successful!"
+                break
+              else
+                RETRY_COUNT=$((RETRY_COUNT+1))
+                if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                  sleep 1
+                fi
+              fi
+            done
 
-            if [ "$HEALTH" = "200" ]; then
-              echo "✨ Deployment successful!"
-            else
-              echo "❌ Health check failed (HTTP $HEALTH)"
+            if [ "$HEALTH" != "200" ]; then
+              echo "❌ Health check failed after $MAX_RETRIES attempts"
+              echo "Backend logs:"
+              docker compose -f docker-compose.prod.yml --env-file .env.production logs backend --tail 30
               exit 1
             fi
