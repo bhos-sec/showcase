@@ -99,6 +99,16 @@ jobs:
             sleep 2
             docker compose -f docker-compose.prod.yml --env-file .env.production rm -f || true
             sleep 1
+            
+            # Prune docker system to free resources
+            echo "🗑️  Pruning Docker system..."
+            docker system prune -f || true
+            
+            # Check what's using port 80 and show it
+            echo "📊 Checking port 80..."
+            ss -tlnp | grep :80 || echo "Port 80 is free!"
+            
+            sleep 2
 
             # Backup database (safety measure)
             echo "📦 Backing up database..."
