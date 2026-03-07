@@ -40,7 +40,7 @@ services:
       - sqlite_data:/data
       - static_files:/app/staticfiles
     env_file:
-      - .env
+      - .env.production
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.production
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -61,7 +61,7 @@ services:
     volumes:
       - sqlite_data:/data
     env_file:
-      - .env
+      - .env.production
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.production
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -85,7 +85,7 @@ services:
     volumes:
       - sqlite_data:/data
     env_file:
-      - .env
+      - .env.production
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.production
       - CELERY_BROKER_URL=redis://redis:6379/0
