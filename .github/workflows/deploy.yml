@@ -93,13 +93,17 @@ jobs:
             # Pull latest images
             docker compose -f docker-compose.prod.yml --env-file .env.production pull
 
+            # Clean up old containers to free up ports
+            echo "🧹 Cleaning up old containers..."
+            docker compose -f docker-compose.prod.yml --env-file .env.production down --remove-orphans || true
+
             # Backup database (safety measure)
             echo "📦 Backing up database..."
             cp ./data/db.sqlite3 ./backups/db_$(date +%Y%m%d_%H%M%S).sqlite3 2>/dev/null || echo "⚠️ No SQLite database to back up yet"
 
             # Deploy with zero downtime
             echo "🔄 Redeploying containers..."
-            docker compose -f docker-compose.prod.yml --env-file .env.production up -d --scale celery-worker=0 --scale celery-beat=0 --no-deps --build
+            docker compose -f docker-compose.prod.yml --env-file .env.production up -d --scale celery-worker=0 --scale celery-beat=0 --build
 
             # Wait for backend to be ready
             echo "⏳ Waiting for backend service..."
