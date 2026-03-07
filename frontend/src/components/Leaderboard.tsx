@@ -87,6 +87,9 @@ export function Leaderboard() {
                   Impact
                 </th>
                 <th className="p-4 text-xs font-mono text-slate-400 uppercase tracking-wider hidden lg:table-cell">
+                  Lines
+                </th>
+                <th className="p-4 text-xs font-mono text-slate-400 uppercase tracking-wider hidden lg:table-cell">
                   Badges
                 </th>
               </tr>
@@ -110,6 +113,9 @@ export function Leaderboard() {
                       </td>
                       <td className="p-4 hidden md:table-cell">
                         <div className="h-4 w-24 bg-slate-700 rounded" />
+                      </td>
+                      <td className="p-4 hidden lg:table-cell">
+                        <div className="h-4 w-40 bg-slate-700 rounded" />
                       </td>
                       <td className="p-4 hidden lg:table-cell">
                         <div className="h-4 w-40 bg-slate-700 rounded" />
@@ -179,6 +185,16 @@ export function Leaderboard() {
                             </div>
                             <span className="text-xs font-mono text-slate-400 w-8">
                               {member.impact}%
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-4 hidden lg:table-cell user-select-none">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono text-green-400">
+                              +{member.additions.toLocaleString()}
+                            </span>
+                            <span className="text-xs font-mono text-orange-400">
+                              -{member.deletions.toLocaleString()}
                             </span>
                           </div>
                         </td>

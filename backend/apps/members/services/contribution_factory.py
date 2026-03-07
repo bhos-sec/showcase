@@ -98,7 +98,7 @@ class ContributionFactory:
             member: The member who authored the PR.
             pr_data: Raw PR data from the GitHub API. Expected keys:
                 ``id``, ``title``, ``html_url``, ``merged_at``,
-                ``base.repo.name`` (optional).
+                ``additions``, ``deletions``, ``base.repo.name`` (optional).
             repository: Optional explicit Project link.
 
         Returns:
@@ -116,7 +116,10 @@ class ContributionFactory:
             pr_data.get("merged_at") or pr_data.get("closed_at") or pr_data.get("created_at")
         )
 
-        return Contribution.objects.get_or_create(
+        additions = pr_data.get("additions", 0)
+        deletions = pr_data.get("deletions", 0)
+
+        contribution, created = Contribution.objects.get_or_create(
             github_id=github_id,
             defaults={
                 "member": member,
@@ -125,9 +128,20 @@ class ContributionFactory:
                 "url": pr_data.get("html_url", ""),
                 "repository": repository,
                 "points": weight,
+                "additions": additions,
+                "deletions": deletions,
                 "occurred_at": occurred_at,
             },
         )
+        
+        # Update line stats if they were just fetched (non-zero values)
+        if not created and (additions > 0 or deletions > 0):
+            if contribution.additions != additions or contribution.deletions != deletions:
+                contribution.additions = additions
+                contribution.deletions = deletions
+                contribution.save(update_fields=["additions", "deletions"])
+        
+        return contribution, created
 
     @classmethod
     def create_from_review(
@@ -154,7 +168,10 @@ class ContributionFactory:
             review_data.get("submitted_at") or review_data.get("created_at")
         )
 
-        return Contribution.objects.get_or_create(
+        additions = review_data.get("additions", 0)
+        deletions = review_data.get("deletions", 0)
+
+        contribution, created = Contribution.objects.get_or_create(
             github_id=github_id,
             defaults={
                 "member": member,
@@ -163,9 +180,20 @@ class ContributionFactory:
                 "url": review_data.get("html_url", ""),
                 "repository": repository,
                 "points": weight,
+                "additions": additions,
+                "deletions": deletions,
                 "occurred_at": occurred_at,
             },
         )
+        
+        # Update line stats if they were just fetched
+        if not created and (additions > 0 or deletions > 0):
+            if contribution.additions != additions or contribution.deletions != deletions:
+                contribution.additions = additions
+                contribution.deletions = deletions
+                contribution.save(update_fields=["additions", "deletions"])
+        
+        return contribution, created
 
     @classmethod
     def create_from_issue(
@@ -197,7 +225,10 @@ class ContributionFactory:
             issue_data.get("closed_at") or issue_data.get("created_at")
         )
 
-        return Contribution.objects.get_or_create(
+        additions = issue_data.get("additions", 0)
+        deletions = issue_data.get("deletions", 0)
+
+        contribution, created = Contribution.objects.get_or_create(
             github_id=github_id,
             defaults={
                 "member": member,
@@ -206,9 +237,20 @@ class ContributionFactory:
                 "url": issue_data.get("html_url", ""),
                 "repository": repository,
                 "points": weight,
+                "additions": additions,
+                "deletions": deletions,
                 "occurred_at": occurred_at,
             },
         )
+        
+        # Update line stats if they were just fetched
+        if not created and (additions > 0 or deletions > 0):
+            if contribution.additions != additions or contribution.deletions != deletions:
+                contribution.additions = additions
+                contribution.deletions = deletions
+                contribution.save(update_fields=["additions", "deletions"])
+        
+        return contribution, created
 
     @classmethod
     def create_from_commit(
@@ -223,7 +265,7 @@ class ContributionFactory:
             member: The member who authored the commit.
             commit_data: Raw commit data. Expected keys:
                 ``sha``, ``commit.message``, ``html_url``,
-                ``commit.author.date``.
+                ``commit.author.date``, ``additions``, ``deletions``.
             repository: Optional explicit Project link.
 
         Returns:
@@ -242,7 +284,10 @@ class ContributionFactory:
         # Truncate commit message to first line.
         title = message.split("\n", 1)[0][:500]
 
-        return Contribution.objects.get_or_create(
+        additions = commit_data.get("additions", 0)
+        deletions = commit_data.get("deletions", 0)
+
+        contribution, created = Contribution.objects.get_or_create(
             github_id=github_id,
             defaults={
                 "member": member,
@@ -251,6 +296,17 @@ class ContributionFactory:
                 "url": commit_data.get("html_url", ""),
                 "repository": repository,
                 "points": weight,
+                "additions": additions,
+                "deletions": deletions,
                 "occurred_at": occurred_at,
             },
         )
+        
+        # Update line stats if they were just fetched
+        if not created and (additions > 0 or deletions > 0):
+            if contribution.additions != additions or contribution.deletions != deletions:
+                contribution.additions = additions
+                contribution.deletions = deletions
+                contribution.save(update_fields=["additions", "deletions"])
+        
+        return contribution, created

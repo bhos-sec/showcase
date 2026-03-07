@@ -283,6 +283,87 @@ class GitHubProfileService:
 
         return items
 
+    def _enrich_pr_with_stats(self, pr_data: dict) -> dict:
+        """Fetch and add additions/deletions to PR data from search results.
+
+        The Search API doesn't include these fields, so we fetch them from
+        the direct PR endpoint if available.
+
+        Args:
+            pr_data: PR data from the Search API.
+
+        Returns:
+            PR data dict enriched with additions and deletions.
+        """
+        try:
+            # Search API returns issues URL, but for PRs we need to convert to /pulls/ endpoint
+            # https://api.github.com/repos/OWNER/REPO/issues/NUMBER -> /pulls/NUMBER
+            url = pr_data.get("url", "")
+            if url and "/issues/" in url:
+                # Convert issues URL to pulls URL for PR data
+                pr_url = url.replace("/issues/", "/pulls/")
+            else:
+                pr_url = pr_data.get("pull_request_url") or url
+            
+            if pr_url:
+                logger.debug("Fetching PR stats from: %s", pr_url)
+                headers = self._rest_headers()
+                
+                with httpx.Client(timeout=self._timeout) as client:
+                    response = client.get(pr_url, headers=headers)
+                    response.raise_for_status()
+                    pr_details = response.json()
+                    
+                    # Add line stats from detailed endpoint
+                    additions = pr_details.get("additions", 0)
+                    deletions = pr_details.get("deletions", 0)
+                    pr_data["additions"] = additions
+                    pr_data["deletions"] = deletions
+                    logger.debug("PR %s: +%d -%d", pr_data.get("number"), additions, deletions)
+            else:
+                logger.warning("PR data missing URL: %s", pr_data)
+                pr_data.setdefault("additions", 0)
+                pr_data.setdefault("deletions", 0)
+        except Exception as exc:
+            logger.warning("Failed to fetch PR stats for %s: %s", pr_data.get("url"), exc)
+            # Fallback to 0 if fetch fails
+            pr_data.setdefault("additions", 0)
+            pr_data.setdefault("deletions", 0)
+        
+        return pr_data
+
+    def _enrich_commit_with_stats(self, commit_data: dict) -> dict:
+        """Fetch and add additions/deletions to commit data.
+
+        Fetches detailed commit info from the direct commit endpoint.
+
+        Args:
+            commit_data: Commit data dict.
+
+        Returns:
+            Commit data dict enriched with additions and deletions.
+        """
+        try:
+            if "url" in commit_data:
+                url = commit_data["url"]
+                headers = self._rest_headers()
+                
+                with httpx.Client(timeout=self._timeout) as client:
+                    response = client.get(url, headers=headers)
+                    response.raise_for_status()
+                    commit_details = response.json()
+                    
+                    # Add line stats from detailed endpoint
+                    commit_data["additions"] = commit_details.get("stats", {}).get("additions", 0)
+                    commit_data["deletions"] = commit_details.get("stats", {}).get("deletions", 0)
+        except Exception as exc:
+            logger.warning("Failed to fetch commit stats for %s: %s", commit_data.get("url"), exc)
+            # Fallback to 0 if fetch fails
+            commit_data.setdefault("additions", 0)
+            commit_data.setdefault("deletions", 0)
+        
+        return commit_data
+
     # ------------------------------------------------------------------
     # Public API — Sync orchestration
     # ------------------------------------------------------------------
@@ -312,6 +393,8 @@ class GitHubProfileService:
         try:
             prs = self.fetch_member_prs(username)
             for pr_data in prs:
+                # Enrich with additions/deletions from PR detail endpoint
+                pr_data = self._enrich_pr_with_stats(pr_data)
                 _, created = ContributionFactory.create_from_pull_request(
                     member=member, pr_data=pr_data
                 )

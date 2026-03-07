@@ -43,7 +43,7 @@ class MemberListSerializer(serializers.ModelSerializer):
 
         {
             id, name, tier, score, github, contributions,
-            impact, badges: string[], avatar
+            impact, additions, deletions, badges: string[], avatar
         }
 
     The ``badges`` field is flattened to a list of name strings.
@@ -69,6 +69,8 @@ class MemberListSerializer(serializers.ModelSerializer):
             "github",
             "contributions",
             "impact",
+            "additions",
+            "deletions",
             "badges",
             "avatar",
         ]
@@ -108,6 +110,8 @@ class ContributionSerializer(serializers.ModelSerializer):
             "url",
             "repository_name",
             "points",
+            "additions",
+            "deletions",
             "occurred_at",
         ]
 
