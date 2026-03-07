@@ -13,7 +13,7 @@ from .base import *  # noqa: F401, F403
 # ---------------------------------------------------------------------------
 DEBUG = False
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h.strip()]
 
 # HTTPS / Security Headers
 SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "True") == "True"
@@ -27,7 +27,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # ---------------------------------------------------------------------------
 # CORS — restrict to known frontend origins
 # ---------------------------------------------------------------------------
-CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+CORS_ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",") if o.strip()]
 
 # ---------------------------------------------------------------------------
 # Database — SQLite with persistent volume in Docker
