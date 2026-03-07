@@ -23,10 +23,6 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copy nginx config
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 
-# Create non-root user for security
-RUN addgroup -g 101 -S www-data && \
-    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -c "Nginx web server" -G www-data www-data
-
 # Expose port
 EXPOSE 80
 
