@@ -31,7 +31,7 @@ COPY --from=builder /install /usr/local
 COPY backend/ /app/
 
 # Create data directory for SQLite and static files.
-RUN mkdir -p /data /app/staticfiles && \
+RUN mkdir -p /data /app/staticfiles /app/logs && \
     addgroup --system django && \
     adduser --system --ingroup django django && \
     chown -R django:django /app /data
