@@ -183,7 +183,7 @@ LOGGING = {
         "file": {
             "level": "INFO",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": BASE_DIR / "logs" / "showcase.log",
+            "filename": str(BASE_DIR / "logs" / "showcase.log"),
             "maxBytes": 1024 * 1024 * 10,  # 10MB
             "backupCount": 5,
             "formatter": "verbose",
@@ -191,7 +191,7 @@ LOGGING = {
         "celery_file": {
             "level": "INFO",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": BASE_DIR / "logs" / "celery.log",
+            "filename": str(BASE_DIR / "logs" / "celery.log"),
             "maxBytes": 1024 * 1024 * 10,  # 10MB
             "backupCount": 5,
             "formatter": "celery",
