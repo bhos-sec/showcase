@@ -38,10 +38,6 @@ RUN mkdir -p /data /app/staticfiles /app/logs && \
     chmod -R 755 /app/logs && \
     chmod -R 755 /app/staticfiles
 
-# Collect static files as root first, then fix permissions.
-RUN DJANGO_SECRET_KEY=build-placeholder python manage.py collectstatic --noinput 2>/dev/null || true && \
-    chown -R django:django /app/staticfiles
-
 USER django
 
 EXPOSE 8000
