@@ -40,3 +40,33 @@ DATABASES = {
 # Email — console backend for development
 # ---------------------------------------------------------------------------
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# ---------------------------------------------------------------------------
+# Logging — add file handlers for local development
+# ---------------------------------------------------------------------------
+LOGGING["handlers"]["file"] = {  # noqa: F405
+    "level": "INFO",
+    "class": "logging.handlers.RotatingFileHandler",
+    "filename": str(BASE_DIR / "logs" / "showcase.log"),  # noqa: F405
+    "maxBytes": 1024 * 1024 * 10,  # 10MB
+    "backupCount": 5,
+    "formatter": "verbose",
+}
+LOGGING["handlers"]["celery_file"] = {  # noqa: F405
+    "level": "INFO",
+    "class": "logging.handlers.RotatingFileHandler",
+    "filename": str(BASE_DIR / "logs" / "celery.log"),  # noqa: F405
+    "maxBytes": 1024 * 1024 * 10,  # 10MB
+    "backupCount": 5,
+    "formatter": "celery",
+}
+
+# Update loggers to use file handlers
+LOGGING["loggers"][""]["handlers"] = ["console", "file"]  # noqa: F405
+LOGGING["loggers"]["django"]["handlers"] = ["console", "file"]  # noqa: F405
+LOGGING["loggers"]["celery"]["handlers"] = ["celery_console", "celery_file"]  # noqa: F405
+LOGGING["loggers"]["celery.task"]["handlers"] = ["celery_console", "celery_file"]  # noqa: F405
+LOGGING["loggers"]["celery.worker"]["handlers"] = ["celery_console", "celery_file"]  # noqa: F405
+LOGGING["loggers"]["apps.projects"]["handlers"] = ["console", "file"]  # noqa: F405
+LOGGING["loggers"]["apps.members"]["handlers"] = ["console", "file"]  # noqa: F405
+LOGGING["loggers"]["apps.core"]["handlers"] = ["console", "file"]  # noqa: F405

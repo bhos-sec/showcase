@@ -180,33 +180,17 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "celery",
         },
-        "file": {
-            "level": "INFO",
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "showcase.log"),
-            "maxBytes": 1024 * 1024 * 10,  # 10MB
-            "backupCount": 5,
-            "formatter": "verbose",
-        },
-        "celery_file": {
-            "level": "INFO",
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "celery.log"),
-            "maxBytes": 1024 * 1024 * 10,  # 10MB
-            "backupCount": 5,
-            "formatter": "celery",
-        },
     },
     "loggers": {
         # Root logger - catches everything
         "": {
-            "handlers": ["console", "file"],
+            "handlers": ["console"],
             "level": "INFO",
             "propagate": True,
         },
         # Django logging
         "django": {
-            "handlers": ["console", "file"],
+            "handlers": ["console"],
             "level": "INFO",
             "propagate": False,
         },
@@ -222,33 +206,33 @@ LOGGING = {
         },
         # Celery logging
         "celery": {
-            "handlers": ["celery_console", "celery_file"],
+            "handlers": ["celery_console"],
             "level": "INFO",
             "propagate": False,
         },
         "celery.task": {
-            "handlers": ["celery_console", "celery_file"],
+            "handlers": ["celery_console"],
             "level": "DEBUG",
             "propagate": False,
         },
         "celery.worker": {
-            "handlers": ["celery_console", "celery_file"],
+            "handlers": ["celery_console"],
             "level": "INFO",
             "propagate": False,
         },
         # App-specific logging
         "apps.projects": {
-            "handlers": ["console", "file"],
+            "handlers": ["console"],
             "level": "DEBUG",
             "propagate": False,
         },
         "apps.members": {
-            "handlers": ["console", "file"],
+            "handlers": ["console"],
             "level": "DEBUG",
             "propagate": False,
         },
         "apps.core": {
-            "handlers": ["console", "file"],
+            "handlers": ["console"],
             "level": "DEBUG",
             "propagate": False,
         },
