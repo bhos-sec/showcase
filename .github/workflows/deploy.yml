@@ -64,16 +64,16 @@ jobs:
 
       - name: Decode SSH key
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" | base64 -d > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
+          mkdir -p /home/runner/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" | base64 -d > /home/runner/.ssh/deploy_key
+          chmod 600 /home/runner/.ssh/deploy_key
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key_path: ~/.ssh/deploy_key
+          key_path: /home/runner/.ssh/deploy_key
           port: ${{ secrets.VPS_PORT }}
           script: |
             set -e  # Exit on error
