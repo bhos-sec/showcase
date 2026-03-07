@@ -107,7 +107,7 @@ services:
       context: .
       dockerfile: docker/frontend/Dockerfile
     ports:
-      - "80:80"
+      - "8001:80"
     volumes:
       - static_files:/app/staticfiles:ro
     depends_on:
