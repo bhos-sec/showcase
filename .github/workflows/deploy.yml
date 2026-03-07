@@ -90,7 +90,7 @@ jobs:
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             # Pull latest images
-            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml --env-file .env.production pull
 
             # Backup database (safety measure)
             echo "📦 Backing up database..."
@@ -98,15 +98,15 @@ jobs:
 
             # Deploy with zero downtime
             echo "🔄 Redeploying containers..."
-            docker compose -f docker-compose.prod.yml up -d --no-deps --build
+            docker compose -f docker-compose.prod.yml --env-file .env.production up -d --no-deps --build
 
             # Run migrations
             echo "🗄️  Running migrations..."
-            docker compose -f docker-compose.prod.yml exec -T backend python manage.py migrate
+            docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python manage.py migrate
 
             # Collect static files
             echo "📂 Collecting static files..."
-            docker compose -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput
+            docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python manage.py collectstatic --noinput
 
             # Verify deployment
             echo "✅ Verifying deployment..."
