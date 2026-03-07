@@ -103,7 +103,14 @@ jobs:
 
             # Wait for backend to be ready
             echo "⏳ Waiting for backend service..."
-            sleep 10
+            for i in {1..60}; do
+              if docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python manage.py check &>/dev/null; then
+                echo "✅ Backend is ready!"
+                break
+              fi
+              echo "  Attempt $i/60... waiting..."
+              sleep 2
+            done
 
             # Run migrations
             echo "🗄️  Running migrations..."
