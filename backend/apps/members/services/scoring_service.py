@@ -152,30 +152,26 @@ class ScoringService:
         return self._strategy.calculate(member)
 
     def calculate_impact(self, member: Member) -> int:
-        """Calculate a member's impact as a percentile rank.
+        """Calculate a member's impact as score distribution percentage.
 
-        Impact represents where the member stands relative to all
-        active members. A score of 95 means the member scores higher
-        than 95% of active members.
+        Impact represents what percentage of the team's total score
+        this member contributes. A score of 66 means this member
+        accounts for 66% of all active members' combined score.
 
         Args:
             member: The Member instance to rank.
 
         Returns:
-            Integer percentile (0–100).
+            Integer percentage of total score (0–100).
         """
-        all_scores = list(
-            Member.objects.filter(is_active=True)
-            .exclude(pk=member.pk)
-            .values_list("score", flat=True)
-        )
+        all_members = Member.objects.filter(is_active=True)
+        total_score = sum(m.score for m in all_members)
 
-        if not all_scores:
-            return 100  # Only member — top percentile.
+        if total_score == 0:
+            return 0  # No scores yet.
 
-        below = sum(1 for s in all_scores if s < member.score)
-        percentile = math.floor((below / len(all_scores)) * 100)
-        return min(percentile, 100)
+        member_percentage = (member.score / total_score) * 100
+        return min(int(member_percentage), 100)
 
     def recalculate_all(self) -> int:
         """Recalculate scores and impact for all active members.
@@ -199,16 +195,15 @@ class ScoringService:
             )
 
         # Phase 2: Calculate impact (needs up-to-date scores).
-        # Sort by score descending and compute percentiles.
-        scores = sorted([m.score for m in members], reverse=True)
-        total = len(scores)
+        # Calculate each member's percentage of total score distribution.
+        total_score = sum(m.score for m in members)
 
         for member in members:
-            if total <= 1:
-                member.impact = 100
+            if total_score == 0:
+                member.impact = 0
             else:
-                rank = scores.index(member.score)
-                member.impact = math.floor(((total - 1 - rank) / (total - 1)) * 100)
+                member_percentage = (member.score / total_score) * 100
+                member.impact = min(int(member_percentage), 100)
 
         # Phase 3: Bulk update.
         Member.objects.bulk_update(
