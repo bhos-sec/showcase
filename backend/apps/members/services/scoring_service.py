@@ -21,7 +21,7 @@ import math
 from abc import ABC, abstractmethod
 from decimal import Decimal
 
-from django.db.models import Sum
+from django.db.models import Count, Sum
 
 from apps.members.models import Contribution, ContributionType, Member, ScoringWeight
 
@@ -56,40 +56,30 @@ class ScoringStrategy(ABC):
 # Concrete strategies
 # ---------------------------------------------------------------------------
 
-class WeightedScoringStrategy(ScoringStrategy):
-    """Scoring strategy using admin-configurable weights.
+class ComprehensiveScoringStrategy(ScoringStrategy):
+    """Comprehensive scoring strategy based on multiple contribution metrics.
 
-    Reads ``ScoringWeight`` records from the database and computes
-    a weighted sum across all of a member's contributions.
+    Calculates score based on:
+    - Contributions count (highest priority): 5 points per contribution
+    - Lines added (medium priority): 0.01 points per line
+    - Lines deleted (medium priority): 0.005 points per line
+    - Issues opened/closed (lower priority): 3 points per issue
 
-    The weight lookup is cached on the instance so multiple calls
-    within the same scoring run share the same DB query.
+    Formula:
+        Score = (contributions × 5) + (additions × 0.01) + 
+                 (deletions × 0.005) + (issues × 3)
     """
 
-    def __init__(self) -> None:
-        self._weights: dict[str, Decimal] | None = None
-
-    def _load_weights(self) -> dict[str, Decimal]:
-        """Load scoring weights from the database.
-
-        Returns:
-            Dictionary mapping ContributionType values to their weight.
-            Falls back to 1.0 for any type without a configured weight.
-        """
-        if self._weights is None:
-            weight_map: dict[str, Decimal] = {
-                ct.value: Decimal("1.0") for ct in ContributionType
-            }
-            for sw in ScoringWeight.objects.all():
-                weight_map[sw.contribution_type] = sw.weight
-            self._weights = weight_map
-        return self._weights
+    # Scoring weights - adjust these to change priority
+    CONTRIBUTION_WEIGHT = Decimal("5")      # 5 points per contribution
+    ADDITIONS_WEIGHT = Decimal("0.01")      # 0.01 points per line added
+    DELETIONS_WEIGHT = Decimal("0.005")     # 0.005 points per line deleted
+    ISSUE_WEIGHT = Decimal("3")             # 3 points per issue
 
     def calculate(self, member: Member) -> Decimal:
-        """Calculate the weighted merit score for a member.
+        """Calculate comprehensive merit score for a member.
 
-        Aggregates contribution points by type, then applies the
-        configured weight for each type.
+        Aggregates scores from multiple metrics with weighted priorities.
 
         Args:
             member: The Member instance to score.
@@ -97,24 +87,77 @@ class WeightedScoringStrategy(ScoringStrategy):
         Returns:
             Total weighted score as a Decimal.
         """
-        weights = self._load_weights()
+        score = Decimal("0")
 
-        # Aggregate total points per contribution type for this member.
-        type_totals = (
-            Contribution.objects.filter(member=member)
-            .values("contribution_type")
-            .annotate(total_count=Sum("id", default=0))  # count
+        # 1. Contribution count score (highest priority)
+        contribution_count = (
+            Contribution.objects.filter(member=member).count()
+        )
+        contribution_score = Decimal(contribution_count) * self.CONTRIBUTION_WEIGHT
+        logger.debug(
+            "Member %s: %d contributions × %s = %s",
+            member.github_username,
+            contribution_count,
+            self.CONTRIBUTION_WEIGHT,
+            contribution_score,
         )
 
-        # We actually want count * weight, not sum of points.
-        # Points are pre-computed on each contribution at creation time,
-        # so simply summing all points is equivalent and more efficient.
-        total = (
+        # 2. Lines added score
+        line_stats = (
             Contribution.objects.filter(member=member)
-            .aggregate(total_points=Sum("points"))
+            .aggregate(
+                total_additions=Sum("additions", default=0),
+                total_deletions=Sum("deletions", default=0),
+            )
         )
 
-        return total["total_points"] or Decimal("0.00")
+        additions = line_stats["total_additions"] or 0
+        deletions = line_stats["total_deletions"] or 0
+
+        additions_score = Decimal(additions) * self.ADDITIONS_WEIGHT
+        deletions_score = Decimal(deletions) * self.DELETIONS_WEIGHT
+
+        logger.debug(
+            "Member %s: +%d lines × %s + -%d lines × %s = +%s -%s",
+            member.github_username,
+            additions,
+            self.ADDITIONS_WEIGHT,
+            deletions,
+            self.DELETIONS_WEIGHT,
+            additions_score,
+            deletions_score,
+        )
+
+        # 3. Issues opened/closed score
+        issue_count = (
+            Contribution.objects.filter(
+                member=member, contribution_type=ContributionType.ISSUE_CLOSED
+            ).count()
+        )
+        issue_score = Decimal(issue_count) * self.ISSUE_WEIGHT
+
+        logger.debug(
+            "Member %s: %d issues × %s = %s",
+            member.github_username,
+            issue_count,
+            self.ISSUE_WEIGHT,
+            issue_score,
+        )
+
+        # Total score
+        score = contribution_score + additions_score + deletions_score + issue_score
+
+        logger.debug(
+            "Member %s: Total score = %s + %s + %s + %s = %s",
+            member.github_username,
+            contribution_score,
+            additions_score,
+            deletions_score,
+            issue_score,
+            score,
+        )
+
+        return score
 
 
 # ---------------------------------------------------------------------------
@@ -127,9 +170,15 @@ class ScoringService:
     Uses a pluggable ``ScoringStrategy`` to compute individual scores
     and provides bulk operations for recalculating the entire membership.
 
+    Uses ComprehensiveScoringStrategy by default, which scores based on:
+    - Contribution count (5 points each)
+    - Lines added (0.01 points each)
+    - Lines deleted (0.005 points each)
+    - Issues closed (3 points each)
+
     Args:
         strategy: An optional ScoringStrategy instance. Defaults to
-            ``WeightedScoringStrategy`` if not provided.
+            ``ComprehensiveScoringStrategy`` if not provided.
 
     Example:
         >>> service = ScoringService()
@@ -138,7 +187,7 @@ class ScoringService:
     """
 
     def __init__(self, strategy: ScoringStrategy | None = None) -> None:
-        self._strategy = strategy or WeightedScoringStrategy()
+        self._strategy = strategy or ComprehensiveScoringStrategy()
 
     def calculate_score(self, member: Member) -> Decimal:
         """Calculate the merit score for a single member.
@@ -187,12 +236,24 @@ class ScoringService:
         if not members:
             return 0
 
-        # Phase 1: Calculate scores and contribution counts.
+        # Phase 1: Calculate scores, contribution counts, and line changes.
         for member in members:
             member.score = self.calculate_score(member)
             member.contributions_count = (
                 Contribution.objects.filter(member=member).count()
             )
+            
+            # Aggregate line changes from all contributions
+            line_stats = (
+                Contribution.objects.filter(member=member)
+                .aggregate(
+                    total_additions=Sum("additions"),
+                    total_deletions=Sum("deletions"),
+                )
+            )
+            
+            member.additions = line_stats["total_additions"] or 0
+            member.deletions = line_stats["total_deletions"] or 0
 
         # Phase 2: Calculate impact (needs up-to-date scores).
         # Calculate each member's percentage of total score distribution.
@@ -208,7 +269,7 @@ class ScoringService:
         # Phase 3: Bulk update.
         Member.objects.bulk_update(
             members,
-            fields=["score", "contributions_count", "impact"],
+            fields=["score", "contributions_count", "impact", "additions", "deletions"],
             batch_size=100,
         )
 

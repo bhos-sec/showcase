@@ -43,6 +43,8 @@ export interface Member {
   github: string;
   contributions: number;
   impact: number; // 0-100 percentile
+  additions: number; // Total lines added
+  deletions: number; // Total lines deleted
   badges: string[];
   avatar: string;
 }
@@ -66,6 +68,8 @@ export interface Contribution {
   url: string;
   repository_name: string | null;
   points: string;
+  additions: number;
+  deletions: number;
   occurred_at: string;
 }
 

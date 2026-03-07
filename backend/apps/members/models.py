@@ -125,6 +125,14 @@ class Member(TimeStampedModel):
         default=0,
         help_text="Percentile rank among active members, 0–100 (cached).",
     )
+    additions = models.PositiveIntegerField(
+        default=0,
+        help_text="Total lines added across all contributions (cached).",
+    )
+    deletions = models.PositiveIntegerField(
+        default=0,
+        help_text="Total lines deleted across all contributions (cached).",
+    )
 
     # Badges — many-to-many via through model for metadata.
     badges = models.ManyToManyField(
@@ -224,6 +232,8 @@ class Contribution(TimeStampedModel):
         url: Link back to the contribution on GitHub.
         repository: Optional link to the related Project.
         points: Computed point value based on the scoring weight.
+        additions: Lines of code added in this contribution.
+        deletions: Lines of code deleted in this contribution.
         occurred_at: When the contribution occurred on GitHub.
     """
 
@@ -258,6 +268,14 @@ class Contribution(TimeStampedModel):
         decimal_places=2,
         default=0,
         help_text="Computed point value based on scoring weight.",
+    )
+    additions = models.PositiveIntegerField(
+        default=0,
+        help_text="Lines of code added in this contribution.",
+    )
+    deletions = models.PositiveIntegerField(
+        default=0,
+        help_text="Lines of code deleted in this contribution.",
     )
     occurred_at = models.DateTimeField(
         help_text="When this contribution occurred on GitHub.",
