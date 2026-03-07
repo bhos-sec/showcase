@@ -69,6 +69,9 @@ DEBUG=False
 SECRET_KEY=your-very-secret-key-change-this
 ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com,your-vps-ip
 
+# Security (disable SSL redirect until Certbot is set up, then enable)
+SECURE_SSL_REDIRECT=False
+
 # GitHub API
 GITHUB_TOKEN=ghp_xxxxxxxxxxxx
 GITHUB_ORG=bhos-sec

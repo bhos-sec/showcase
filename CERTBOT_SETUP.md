@@ -95,9 +95,24 @@ sudo systemctl list-timers certbot.timer
 sudo certbot renew --dry-run
 ```
 
+## Enabling SECURE_SSL_REDIRECT
+
+Before SSL is configured, keep `SECURE_SSL_REDIRECT=False` in `.env.production` to allow HTTP health checks during deployment.
+
+**After Certbot is fully configured and working:**
+
+1. SSH into your VPS
+2. Edit `.env.production`:
+   ```bash
+   nano /home/deploy/showcase/.env.production
+   ```
+3. Change `SECURE_SSL_REDIRECT=False` to `SECURE_SSL_REDIRECT=True`
+4. Save and exit
+5. Push a new commit or manually restart: `docker compose -f docker-compose.prod.yml --env-file .env.production restart backend`
+
 ## Environment Variables for Backend
 
-Make sure `.env.production` has:
+Once SSL is configured, `.env.production` should have:
 
 ```bash
 SECURE_SSL_REDIRECT=True
