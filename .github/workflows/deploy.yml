@@ -124,7 +124,7 @@ jobs:
             # Verify deployment by checking health endpoint from inside container
             echo "✅ Verifying deployment..."
             sleep 5
-            HEALTH=$(docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/health/ || echo "000")
+            HEALTH=$(docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/').getcode()" 2>/dev/null || echo "000")
 
             if [ "$HEALTH" = "200" ]; then
               echo "✨ Deployment successful!"
