@@ -143,14 +143,7 @@ jobs:
             MAX_RETRIES=10
             RETRY_COUNT=0
             while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-              HEALTH=$(docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python -c "
-import urllib.request
-try:
-    response = urllib.request.urlopen('http://localhost:8000/api/health/', timeout=5)
-    print(response.getcode())
-except Exception:
-    print('000')
-" 2>&1 || echo "000")
+              HEALTH=$(docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python -c "import urllib.request; response = urllib.request.urlopen('http://localhost:8000/api/health/', timeout=5); print(response.getcode())" 2>/dev/null || echo "000")
               
               if [ "$HEALTH" = "200" ]; then
                 echo "✨ Deployment successful!"
