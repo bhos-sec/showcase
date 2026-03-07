@@ -99,7 +99,11 @@ jobs:
 
             # Deploy with zero downtime
             echo "🔄 Redeploying containers..."
-            docker compose -f docker-compose.prod.yml --env-file .env.production up -d --no-deps --build
+            docker compose -f docker-compose.prod.yml --env-file .env.production up -d --scale celery-worker=0 --scale celery-beat=0 --no-deps --build
+
+            # Wait for backend to be ready
+            echo "⏳ Waiting for backend service..."
+            sleep 10
 
             # Run migrations
             echo "🗄️  Running migrations..."
@@ -108,6 +112,10 @@ jobs:
             # Collect static files
             echo "📂 Collecting static files..."
             docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python manage.py collectstatic --noinput
+
+            # Restart Celery services
+            echo "🔄 Starting Celery services..."
+            docker compose -f docker-compose.prod.yml --env-file .env.production up -d celery-worker celery-beat
 
             # Verify deployment
             echo "✅ Verifying deployment..."
