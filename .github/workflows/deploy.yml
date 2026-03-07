@@ -93,6 +93,11 @@ jobs:
             # Pull latest images
             docker compose -f docker-compose.prod.yml --env-file .env.production pull
 
+            # Stop system nginx if running (we use Docker nginx)
+            echo "🛑 Stopping system nginx if running..."
+            sudo systemctl stop nginx 2>/dev/null || true
+            sleep 1
+
             # Clean up old containers to free up ports
             echo "🧹 Cleaning up old containers..."
             docker compose -f docker-compose.prod.yml --env-file .env.production stop || true
