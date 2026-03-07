@@ -138,12 +138,16 @@ jobs:
             echo "🔄 Starting Celery services..."
             docker compose -f docker-compose.prod.yml --env-file .env.production up -d celery-worker celery-beat
 
+            # Wait for backend workers to fully initialize
+            echo "⏳ Waiting for backend to initialize..."
+            sleep 5
+
             # Verify deployment with retry loop
             echo "✅ Verifying deployment..."
-            MAX_RETRIES=10
+            MAX_RETRIES=20
             RETRY_COUNT=0
             while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-              HEALTH=$(docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python -c "import urllib.request; response = urllib.request.urlopen('http://localhost:8000/api/health/', timeout=5); print(response.getcode())" 2>/dev/null || echo "000")
+              HEALTH=$(docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/', timeout=5).getcode(); print('200')" 2>&1 || echo "000")
               
               if [ "$HEALTH" = "200" ]; then
                 echo "✨ Deployment successful!"
@@ -151,14 +155,16 @@ jobs:
               else
                 RETRY_COUNT=$((RETRY_COUNT+1))
                 if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-                  sleep 1
+                  echo "  Attempt $RETRY_COUNT/$MAX_RETRIES - Status: $HEALTH"
+                  sleep 2
                 fi
               fi
             done
 
             if [ "$HEALTH" != "200" ]; then
-              echo "❌ Health check failed after $MAX_RETRIES attempts"
-              echo "Backend logs:"
-              docker compose -f docker-compose.prod.yml --env-file .env.production logs backend --tail 30
+              echo "❌ Health check failed after $MAX_RETRIES attempts. Last response: $HEALTH"
+              echo ""
+              echo "🔍 Backend logs:"
+              docker compose -f docker-compose.prod.yml --env-file .env.production logs backend --tail 50
               exit 1
             fi
