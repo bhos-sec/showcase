@@ -109,9 +109,13 @@ jobs:
             echo "🗄️  Running migrations..."
             docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python manage.py migrate
 
-            # Collect static files (clear old files first)
+            # Remove old staticfiles directory as root to avoid permission issues
+            echo "🧹 Cleaning up old static files..."
+            docker compose -f docker-compose.prod.yml --env-file .env.production exec -T -u root backend bash -c "rm -rf /app/staticfiles/* && chmod -R 755 /app/staticfiles || true"
+
+            # Collect static files
             echo "📂 Collecting static files..."
-            docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python manage.py collectstatic --clear --noinput
+            docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python manage.py collectstatic --noinput
 
             # Restart Celery services
             echo "🔄 Starting Celery services..."
