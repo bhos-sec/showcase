@@ -26,7 +26,7 @@ interface UseProjectsState {
  */
 export function useProjects(
   page: number = 1,
-  pageSize: number = 25,
+  pageSize: number = 25
 ): UseProjectsState {
   const [state, setState] = useState<UseProjectsState>({
     projects: [],

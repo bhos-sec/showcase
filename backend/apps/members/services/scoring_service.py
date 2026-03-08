@@ -17,11 +17,10 @@ Architecture:
 from __future__ import annotations
 
 import logging
-import math
 from abc import ABC, abstractmethod
 from decimal import Decimal
 
-from django.db.models import Count, Sum
+from django.db.models import Sum
 
 from apps.members.models import Contribution, ContributionType, Member, ScoringWeight
 
@@ -31,6 +30,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Strategy interface
 # ---------------------------------------------------------------------------
+
 
 class ScoringStrategy(ABC):
     """Abstract base class for scoring algorithms.
@@ -56,6 +56,7 @@ class ScoringStrategy(ABC):
 # Concrete strategies
 # ---------------------------------------------------------------------------
 
+
 class ComprehensiveScoringStrategy(ScoringStrategy):
     """Comprehensive scoring strategy based on multiple contribution metrics.
 
@@ -66,15 +67,15 @@ class ComprehensiveScoringStrategy(ScoringStrategy):
     - Issues opened/closed (lower priority): 3 points per issue
 
     Formula:
-        Score = (contributions × 5) + (additions × 0.01) + 
+        Score = (contributions × 5) + (additions × 0.01) +
                  (deletions × 0.005) + (issues × 3)
     """
 
     # Scoring weights - adjust these to change priority
-    CONTRIBUTION_WEIGHT = Decimal("5")      # 5 points per contribution
-    ADDITIONS_WEIGHT = Decimal("0.01")      # 0.01 points per line added
-    DELETIONS_WEIGHT = Decimal("0.005")     # 0.005 points per line deleted
-    ISSUE_WEIGHT = Decimal("3")             # 3 points per issue
+    CONTRIBUTION_WEIGHT = Decimal("5")  # 5 points per contribution
+    ADDITIONS_WEIGHT = Decimal("0.01")  # 0.01 points per line added
+    DELETIONS_WEIGHT = Decimal("0.005")  # 0.005 points per line deleted
+    ISSUE_WEIGHT = Decimal("3")  # 3 points per issue
 
     def calculate(self, member: Member) -> Decimal:
         """Calculate comprehensive merit score for a member.
@@ -104,14 +105,13 @@ class ComprehensiveScoringStrategy(ScoringStrategy):
         commit_points = (
             Contribution.objects.filter(
                 member=member, contribution_type=ContributionType.COMMIT
-            ).aggregate(total=Sum("points", default=0))["total"] or 0
+            ).aggregate(total=Sum("points", default=0))["total"]
+            or 0
         )
         try:
-            commit_weight = (
-                ScoringWeight.objects.get(
-                    contribution_type=ContributionType.COMMIT
-                ).weight
-            )
+            commit_weight = ScoringWeight.objects.get(
+                contribution_type=ContributionType.COMMIT
+            ).weight
         except ScoringWeight.DoesNotExist:
             commit_weight = Decimal("1.0")
 
@@ -131,12 +131,9 @@ class ComprehensiveScoringStrategy(ScoringStrategy):
         )
 
         # 2. Lines added score
-        line_stats = (
-            Contribution.objects.filter(member=member)
-            .aggregate(
-                total_additions=Sum("additions", default=0),
-                total_deletions=Sum("deletions", default=0),
-            )
+        line_stats = Contribution.objects.filter(member=member).aggregate(
+            total_additions=Sum("additions", default=0),
+            total_deletions=Sum("deletions", default=0),
         )
 
         additions = line_stats["total_additions"] or 0
@@ -157,11 +154,9 @@ class ComprehensiveScoringStrategy(ScoringStrategy):
         )
 
         # 3. Issues opened/closed score
-        issue_count = (
-            Contribution.objects.filter(
-                member=member, contribution_type=ContributionType.ISSUE_CLOSED
-            ).count()
-        )
+        issue_count = Contribution.objects.filter(
+            member=member, contribution_type=ContributionType.ISSUE_CLOSED
+        ).count()
         issue_score = Decimal(issue_count) * self.ISSUE_WEIGHT
 
         logger.debug(
@@ -191,6 +186,7 @@ class ComprehensiveScoringStrategy(ScoringStrategy):
 # ---------------------------------------------------------------------------
 # Service orchestrator
 # ---------------------------------------------------------------------------
+
 
 class ScoringService:
     """Orchestrates score calculation and impact ranking for members.
@@ -280,7 +276,8 @@ class ScoringService:
             commit_points = (
                 Contribution.objects.filter(
                     member=member, contribution_type=ContributionType.COMMIT
-                ).aggregate(total=Sum("points", default=0))["total"] or 0
+                ).aggregate(total=Sum("points", default=0))["total"]
+                or 0
             )
             try:
                 commit_weight = ScoringWeight.objects.get(
@@ -290,21 +287,16 @@ class ScoringService:
                 commit_weight = Decimal("1.0")
 
             effective_commit_count = (
-                int(Decimal(str(commit_points)) / commit_weight)
-                if commit_weight
-                else 0
+                int(Decimal(str(commit_points)) / commit_weight) if commit_weight else 0
             )
             member.contributions_count = non_commit_count + effective_commit_count
-            
+
             # Aggregate line changes from all contributions
-            line_stats = (
-                Contribution.objects.filter(member=member)
-                .aggregate(
-                    total_additions=Sum("additions"),
-                    total_deletions=Sum("deletions"),
-                )
+            line_stats = Contribution.objects.filter(member=member).aggregate(
+                total_additions=Sum("additions"),
+                total_deletions=Sum("deletions"),
             )
-            
+
             member.additions = line_stats["total_additions"] or 0
             member.deletions = line_stats["total_deletions"] or 0
 

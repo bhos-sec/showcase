@@ -4,48 +4,99 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Language',
+            name="Language",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, db_index=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('name', models.CharField(max_length=100, unique=True)),
-                ('color', models.CharField(blank=True, default='', help_text="Hex colour code from GitHub, e.g. '#3572A5'.", max_length=7)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("name", models.CharField(max_length=100, unique=True)),
+                (
+                    "color",
+                    models.CharField(
+                        blank=True,
+                        default="",
+                        help_text="Hex colour code from GitHub, e.g. '#3572A5'.",
+                        max_length=7,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['name'],
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='Project',
+            name="Project",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, db_index=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('name', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True, default='')),
-                ('github_url', models.URLField(unique=True)),
-                ('homepage_url', models.URLField(blank=True, default='')),
-                ('stars', models.PositiveIntegerField(db_index=True, default=0)),
-                ('forks', models.PositiveIntegerField(default=0)),
-                ('open_issues', models.PositiveIntegerField(default=0)),
-                ('status', models.CharField(choices=[('Active', 'Active'), ('Beta', 'Beta'), ('Alpha', 'Alpha')], default='Active', max_length=10)),
-                ('is_visible', models.BooleanField(default=True, help_text='Uncheck to hide this repo from the public Forge.')),
-                ('github_id', models.PositiveBigIntegerField(help_text='GitHub repo ID.', unique=True)),
-                ('last_synced_at', models.DateTimeField(blank=True, null=True)),
-                ('languages', models.ManyToManyField(blank=True, related_name='projects', to='projects.language')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("name", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True, default="")),
+                ("github_url", models.URLField(unique=True)),
+                ("homepage_url", models.URLField(blank=True, default="")),
+                ("stars", models.PositiveIntegerField(db_index=True, default=0)),
+                ("forks", models.PositiveIntegerField(default=0)),
+                ("open_issues", models.PositiveIntegerField(default=0)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("Active", "Active"),
+                            ("Beta", "Beta"),
+                            ("Alpha", "Alpha"),
+                        ],
+                        default="Active",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "is_visible",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Uncheck to hide this repo from the public Forge.",
+                    ),
+                ),
+                (
+                    "github_id",
+                    models.PositiveBigIntegerField(
+                        help_text="GitHub repo ID.", unique=True
+                    ),
+                ),
+                ("last_synced_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "languages",
+                    models.ManyToManyField(
+                        blank=True, related_name="projects", to="projects.language"
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-stars', 'name'],
-                'indexes': [models.Index(fields=['-stars'], name='idx_project_stars_desc')],
+                "ordering": ["-stars", "name"],
+                "indexes": [
+                    models.Index(fields=["-stars"], name="idx_project_stars_desc")
+                ],
             },
         ),
     ]

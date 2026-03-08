@@ -73,4 +73,4 @@ def sync_github_repos(self):
         logger.error(f"   Retry: {self.request.retries + 1}/{self.max_retries}")
         logger.exception("   Error details:")
         logger.error("=" * 70)
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc

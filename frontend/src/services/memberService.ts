@@ -18,7 +18,7 @@ import type { Member, MemberDetail, PaginatedResponse } from "../types/api";
 export async function fetchMembers(
   page: number = 1,
   pageSize: number = 25,
-  tier?: string,
+  tier?: string
 ): Promise<PaginatedResponse<Member>> {
   const params: Record<string, string | number> = {
     page,

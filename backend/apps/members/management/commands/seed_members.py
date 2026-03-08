@@ -51,12 +51,16 @@ class Command(BaseCommand):
             results = service.sync_all_members()
             total = sum(r.total_created for r in results)
             self.stdout.write(
-                self.style.SUCCESS(f"Created {total} new contributions across {len(results)} members.")
+                self.style.SUCCESS(
+                    f"Created {total} new contributions across {len(results)} members."
+                )
             )
 
             self.stdout.write("Recalculating scores...")
             scoring = ScoringService()
             updated = scoring.recalculate_all()
-            self.stdout.write(self.style.SUCCESS(f"Updated scores for {updated} members."))
+            self.stdout.write(
+                self.style.SUCCESS(f"Updated scores for {updated} members.")
+            )
 
         self.stdout.write(self.style.SUCCESS("Done."))

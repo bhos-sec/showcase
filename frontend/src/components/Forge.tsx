@@ -14,7 +14,7 @@ export function Forge() {
     return (
       <section className="flex flex-col gap-6">
         <div className="p-4 bg-red-950/30 border border-dashed border-red-900 text-red-500 font-mono text-xs uppercase tracking-wider">
-          // ERR: FAILED_TO_LOAD_PROJECTS
+          {/* ERR: FAILED_TO_LOAD_PROJECTS */}
         </div>
       </section>
     );

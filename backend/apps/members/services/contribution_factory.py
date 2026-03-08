@@ -13,8 +13,8 @@ import logging
 from datetime import datetime
 from decimal import Decimal
 
-from django.utils.dateparse import parse_datetime
 from django.utils import timezone as dj_timezone
+from django.utils.dateparse import parse_datetime
 
 from apps.members.models import Contribution, ContributionType, Member, ScoringWeight
 from apps.projects.models import Project
@@ -114,7 +114,9 @@ class ContributionFactory:
             repository = cls._resolve_repository(repo_name)
 
         occurred_at = cls._parse_datetime(
-            pr_data.get("merged_at") or pr_data.get("closed_at") or pr_data.get("created_at")
+            pr_data.get("merged_at")
+            or pr_data.get("closed_at")
+            or pr_data.get("created_at")
         )
 
         # Additions/deletions are deliberately set to 0 on PR contributions.
@@ -146,7 +148,7 @@ class ContributionFactory:
         total_additions: int = 0,
         total_deletions: int = 0,
         repository: Project | None = None,
-    ) -> tuple["Contribution", bool]:
+    ) -> tuple[Contribution, bool]:
         """Create or update a single aggregated commit record for a repo.
 
         Uses one ``Contribution`` record per (member, repo) to represent the
@@ -203,7 +205,9 @@ class ContributionFactory:
             contribution.points = points
             contribution.additions = total_additions
             contribution.deletions = total_deletions
-            contribution.save(update_fields=["points", "additions", "deletions", "updated_at"])
+            contribution.save(
+                update_fields=["points", "additions", "deletions", "updated_at"]
+            )
 
         return contribution, created
 
@@ -249,14 +253,17 @@ class ContributionFactory:
                 "occurred_at": occurred_at,
             },
         )
-        
+
         # Update line stats if they were just fetched
         if not created and (additions > 0 or deletions > 0):
-            if contribution.additions != additions or contribution.deletions != deletions:
+            if (
+                contribution.additions != additions
+                or contribution.deletions != deletions
+            ):
                 contribution.additions = additions
                 contribution.deletions = deletions
                 contribution.save(update_fields=["additions", "deletions"])
-        
+
         return contribution, created
 
     @classmethod
@@ -306,14 +313,17 @@ class ContributionFactory:
                 "occurred_at": occurred_at,
             },
         )
-        
+
         # Update line stats if they were just fetched
         if not created and (additions > 0 or deletions > 0):
-            if contribution.additions != additions or contribution.deletions != deletions:
+            if (
+                contribution.additions != additions
+                or contribution.deletions != deletions
+            ):
                 contribution.additions = additions
                 contribution.deletions = deletions
                 contribution.save(update_fields=["additions", "deletions"])
-        
+
         return contribution, created
 
     @classmethod
@@ -341,16 +351,14 @@ class ContributionFactory:
         # Resolve repository from search API response if not provided explicitly.
         # The Search Commits API includes a "repository" object with a "name" field.
         if not repository:
-            repo_name = (
-                commit_data.get("repository", {}).get("name")
-                or commit_data.get("repo", {}).get("name")
-            )
+            repo_name = commit_data.get("repository", {}).get(
+                "name"
+            ) or commit_data.get("repo", {}).get("name")
             repository = cls._resolve_repository(repo_name)
 
         commit_info = commit_data.get("commit", {})
         occurred_at = cls._parse_datetime(
-            commit_info.get("author", {}).get("date")
-            or commit_data.get("created_at")
+            commit_info.get("author", {}).get("date") or commit_data.get("created_at")
         )
 
         message = commit_info.get("message", "Untitled commit")
@@ -374,12 +382,15 @@ class ContributionFactory:
                 "occurred_at": occurred_at,
             },
         )
-        
+
         # Update line stats if they were just fetched
         if not created and (additions > 0 or deletions > 0):
-            if contribution.additions != additions or contribution.deletions != deletions:
+            if (
+                contribution.additions != additions
+                or contribution.deletions != deletions
+            ):
                 contribution.additions = additions
                 contribution.deletions = deletions
                 contribution.save(update_fields=["additions", "deletions"])
-        
+
         return contribution, created

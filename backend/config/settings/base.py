@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -103,7 +104,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Password validation
 # ---------------------------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -240,7 +243,7 @@ LOGGING = {
 }
 
 # Create logs directory if it doesn't exist
-import sys
+
 LOGS_DIR = BASE_DIR / "logs"
 if not sys.argv[1:2] == ["celery"]:  # Don't create during celery commands
     LOGS_DIR.mkdir(exist_ok=True)
@@ -249,7 +252,9 @@ if not sys.argv[1:2] == ["celery"]:  # Don't create during celery commands
 # Celery
 # ---------------------------------------------------------------------------
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/0")
-CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get(
+    "CELERY_RESULT_BACKEND", "redis://localhost:6379/0"
+)
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"

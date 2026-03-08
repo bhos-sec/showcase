@@ -28,7 +28,7 @@ interface UseMembersState {
 export function useMembers(
   page: number = 1,
   pageSize: number = 25,
-  tier?: string,
+  tier?: string
 ): UseMembersState {
   const [state, setState] = useState<UseMembersState>({
     members: [],

@@ -10,10 +10,10 @@ from django.db import models
 
 from apps.core.models import TimeStampedModel
 
-
 # ---------------------------------------------------------------------------
 # Enumerations
 # ---------------------------------------------------------------------------
+
 
 class Tier(models.TextChoices):
     """Leadership tiers for the collective's ranking system.
@@ -47,6 +47,7 @@ class ContributionType(models.TextChoices):
 # ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
+
 
 class Badge(TimeStampedModel):
     """An achievement badge that can be awarded to members.

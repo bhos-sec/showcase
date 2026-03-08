@@ -18,7 +18,7 @@ import type { Project, PaginatedResponse } from "../types/api";
 export async function fetchProjects(
   page: number = 1,
   pageSize: number = 25,
-  status?: string,
+  status?: string
 ): Promise<PaginatedResponse<Project>> {
   const params: Record<string, string | number> = {
     page,

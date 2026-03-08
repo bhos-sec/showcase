@@ -43,7 +43,4 @@ class ProjectListView(ListAPIView):
             QuerySet of visible Project instances with languages
             prefetched to avoid N+1 queries.
         """
-        return (
-            Project.objects.filter(is_visible=True)
-            .prefetch_related("languages")
-        )
+        return Project.objects.filter(is_visible=True).prefetch_related("languages")

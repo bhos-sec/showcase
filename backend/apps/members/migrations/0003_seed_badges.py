@@ -2,7 +2,6 @@
 
 from django.db import migrations
 
-
 DEFAULT_BADGES = [
     ("Architect", "Designed a major system or feature.", "Architect"),
     ("Visionary", "Proposed an accepted strategic initiative.", "Visionary"),
@@ -33,9 +32,8 @@ def delete_badges(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('members', '0002_seed_scoring_weights'),
+        ("members", "0002_seed_scoring_weights"),
     ]
 
     operations = [
