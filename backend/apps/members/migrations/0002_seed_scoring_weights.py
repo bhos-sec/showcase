@@ -4,7 +4,6 @@ from decimal import Decimal
 
 from django.db import migrations
 
-
 DEFAULT_WEIGHTS = [
     ("PR_MERGED", Decimal("10.00"), "Points for a merged pull request."),
     ("CODE_REVIEW", Decimal("7.00"), "Points for a code review submitted."),
@@ -34,9 +33,8 @@ def delete_weights(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('members', '0001_initial'),
+        ("members", "0001_initial"),
     ]
 
     operations = [

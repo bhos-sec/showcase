@@ -37,7 +37,7 @@ export function Leaderboard() {
     return (
       <section className="flex flex-col gap-6">
         <div className="p-4 bg-red-950/30 border border-dashed border-red-900 text-red-500 font-mono text-xs uppercase tracking-wider">
-          // ERR: FAILED_TO_LOAD_LEADERBOARD
+          {/* ERR: FAILED_TO_LOAD_LEADERBOARD */}
         </div>
       </section>
     );
@@ -234,7 +234,7 @@ export function Leaderboard() {
         {totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between p-3 md:p-4 border-t border-border bg-secondary/30 gap-3 sm:gap-0">
             <div className="text-[9px] md:text-[10px] uppercase font-mono text-muted-foreground tracking-widest text-center sm:text-left">
-              // IDX: {startIndex.toString().padStart(2, "0")} -{" "}
+              {/* IDX: {startIndex.toString().padStart(2, "0")} -{" "} */}
               {(Math.min(startIndex + MEMBERS_PER_PAGE, totalCount) - 1)
                 .toString()
                 .padStart(2, "0")}{" "}

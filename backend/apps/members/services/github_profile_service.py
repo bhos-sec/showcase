@@ -21,11 +21,10 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
 
 import httpx
 from django.conf import settings
-from django.utils import timezone as dj_timezone
 
 from apps.members.models import Contribution, Member
 from apps.members.services.contribution_factory import ContributionFactory
@@ -281,7 +280,9 @@ class GitHubProfileService:
                 wait = 3 * (attempt + 1)
                 logger.debug(
                     "Stats cache not ready for '%s', retrying in %ds (attempt %d/6)",
-                    repo_name, wait, attempt + 1,
+                    repo_name,
+                    wait,
+                    attempt + 1,
                 )
                 time.sleep(wait)
                 continue
@@ -338,8 +339,7 @@ class GitHubProfileService:
         with httpx.Client(timeout=self._timeout) as client:
             while True:
                 url = (
-                    f"{self._base_url}/search/issues"
-                    f"?q={query}&per_page=100&page={page}"
+                    f"{self._base_url}/search/issues?q={query}&per_page=100&page={page}"
                 )
                 response = client.get(url, headers=headers)
 
@@ -381,32 +381,36 @@ class GitHubProfileService:
                 pr_url = url.replace("/issues/", "/pulls/")
             else:
                 pr_url = pr_data.get("pull_request_url") or url
-            
+
             if pr_url:
                 logger.debug("Fetching PR stats from: %s", pr_url)
                 headers = self._rest_headers()
-                
+
                 with httpx.Client(timeout=self._timeout) as client:
                     response = client.get(pr_url, headers=headers)
                     response.raise_for_status()
                     pr_details = response.json()
-                    
+
                     # Add line stats from detailed endpoint
                     additions = pr_details.get("additions", 0)
                     deletions = pr_details.get("deletions", 0)
                     pr_data["additions"] = additions
                     pr_data["deletions"] = deletions
-                    logger.debug("PR %s: +%d -%d", pr_data.get("number"), additions, deletions)
+                    logger.debug(
+                        "PR %s: +%d -%d", pr_data.get("number"), additions, deletions
+                    )
             else:
                 logger.warning("PR data missing URL: %s", pr_data)
                 pr_data.setdefault("additions", 0)
                 pr_data.setdefault("deletions", 0)
         except Exception as exc:
-            logger.warning("Failed to fetch PR stats for %s: %s", pr_data.get("url"), exc)
+            logger.warning(
+                "Failed to fetch PR stats for %s: %s", pr_data.get("url"), exc
+            )
             # Fallback to 0 if fetch fails
             pr_data.setdefault("additions", 0)
             pr_data.setdefault("deletions", 0)
-        
+
         return pr_data
 
     # ------------------------------------------------------------------
@@ -537,7 +541,9 @@ class GitHubProfileService:
             if created:
                 created_count += 1
 
-        logger.info("Bootstrapped %d new members from org '%s'.", created_count, self._org)
+        logger.info(
+            "Bootstrapped %d new members from org '%s'.", created_count, self._org
+        )
         return created_count
 
     # ------------------------------------------------------------------
@@ -572,14 +578,11 @@ class GitHubProfileService:
         # Remove legacy per-commit records (github_id = "commit_{sha}") that
         # were created by the old per-member search approach.
         members = list(members_map.values())
-        deleted, _ = (
-            Contribution.objects.filter(
-                member__in=members,
-                contribution_type="COMMIT",
-                github_id__startswith="commit_",
-            )
-            .delete()
-        )
+        deleted, _ = Contribution.objects.filter(
+            member__in=members,
+            contribution_type="COMMIT",
+            github_id__startswith="commit_",
+        ).delete()
         if deleted:
             logger.info(
                 "Removed %d legacy per-commit records before aggregated stats sync.",

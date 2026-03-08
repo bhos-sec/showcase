@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 from django.conf import settings
@@ -105,7 +105,7 @@ class GitHubRepoService:
             logger.warning(
                 "GitHub rate limit low: %s remaining, resets at %s",
                 remaining,
-                datetime.fromtimestamp(int(reset_ts), tz=timezone.utc),
+                datetime.fromtimestamp(int(reset_ts), tz=UTC),
             )
 
     # ------------------------------------------------------------------
@@ -147,7 +147,9 @@ class GitHubRepoService:
                     break
                 page += 1
 
-        logger.info("Fetched %d repositories from GitHub org '%s'.", len(repos), self._org)
+        logger.info(
+            "Fetched %d repositories from GitHub org '%s'.", len(repos), self._org
+        )
         return repos
 
     def fetch_repo_languages(self, repo_full_name: str) -> dict[str, int]:
@@ -183,7 +185,7 @@ class GitHubRepoService:
             A ``SyncResult`` summarising created/updated counts and errors.
         """
         result = SyncResult()
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
 
         try:
             raw_repos = self.fetch_org_repos()

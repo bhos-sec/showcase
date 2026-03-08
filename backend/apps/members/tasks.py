@@ -64,7 +64,9 @@ def sync_member_contributions(self):
         logger.info(f"   Members synced: {summary['members_synced']}")
         logger.info(f"   Contributions created: {summary['total_created']}")
         logger.info(f"   Errors: {summary['total_errors']}")
-        logger.info(f"   Total contributions: {initial_contributions} → {final_contributions}")
+        logger.info(
+            f"   Total contributions: {initial_contributions} → {final_contributions}"
+        )
         logger.info("=" * 70)
 
         return summary
@@ -76,7 +78,7 @@ def sync_member_contributions(self):
         logger.error(f"   Retry: {self.request.retries + 1}/{self.max_retries}")
         logger.exception("   Error details:")
         logger.error("=" * 70)
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
 
 
 @shared_task(
@@ -121,7 +123,9 @@ def recalculate_all_scores(self):
         logger.info(f"   Members updated: {count}")
         logger.info("   Top 5 members:")
         for i, m in enumerate(top_members, 1):
-            logger.info(f"      {i}. {m.name:20s} | Tier: {m.tier:8s} | Score: {m.score:6.0f} | Impact: {m.impact:3d}%")
+            logger.info(
+                f"      {i}. {m.name:20s} | Tier: {m.tier:8s} | Score: {m.score:6.0f} | Impact: {m.impact:3d}%"
+            )
         logger.info("=" * 70)
 
         summary = {"members_updated": count}
@@ -134,7 +138,7 @@ def recalculate_all_scores(self):
         logger.error(f"   Retry: {self.request.retries + 1}/{self.max_retries}")
         logger.exception("   Error details:")
         logger.error("=" * 70)
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
 
 
 @shared_task(name="members.bootstrap_members")
@@ -172,7 +176,9 @@ def bootstrap_members():
         logger.info(f"   Total members: {initial_count} → {final_count}")
 
         # Show newly created members
-        new_members = Member.objects.filter(is_active=True).order_by("-created_at")[:min(count, 5)]
+        new_members = Member.objects.filter(is_active=True).order_by("-created_at")[
+            : min(count, 5)
+        ]
         if new_members:
             logger.info("   Recently added members:")
             for m in new_members:
@@ -181,7 +187,7 @@ def bootstrap_members():
         logger.info("=" * 70)
         return {"members_created": count}
 
-    except Exception as exc:
+    except Exception:
         logger.error("=" * 70)
         logger.error("❌ FAILED: Bootstrap Members from GitHub Organization")
         logger.exception("   Error details:")

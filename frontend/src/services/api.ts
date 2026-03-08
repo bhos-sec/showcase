@@ -32,7 +32,7 @@ export class ApiClient {
    */
   async get<T>(
     endpoint: string,
-    params?: Record<string, string | number>,
+    params?: Record<string, string | number>
   ): Promise<T> {
     const url = new URL(`${this.baseUrl}${endpoint}`, window.location.origin);
     if (params) {

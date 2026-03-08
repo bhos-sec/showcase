@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Logo } from "./components/Logo";
 import { Forge } from "./components/Forge";
 import { Leaderboard } from "./components/Leaderboard";
@@ -67,15 +67,18 @@ export default function App() {
             <Logo className="h-5 sm:h-7 w-auto opacity-90 hover:opacity-100 transition-opacity select-none" />
           </div>
           <nav className="flex items-center gap-0 sm:gap-1">
-            <button className="font-mono text-[10px] sm:text-xs tracking-widest uppercase px-2 sm:px-4 py-2 text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-all duration-100 active:translate-y-px active:translate-x-px">
-              Aim
-            </button>
-            <button className="font-mono text-[10px] sm:text-xs tracking-widest uppercase px-2 sm:px-4 py-2 text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-all duration-100 active:translate-y-px active:translate-x-px">
-              Pillars
-            </button>
-            <button className="font-mono text-[10px] sm:text-xs tracking-widest uppercase px-2 sm:px-4 py-2 text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-all duration-100 active:translate-y-px active:translate-x-px hidden sm:block">
-              Apply
-            </button>
+            <a
+              href="#forge"
+              className="font-mono text-[10px] sm:text-xs tracking-widest uppercase px-2 sm:px-4 py-2 text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-all duration-100 active:translate-y-px active:translate-x-px inline-block cursor-pointer"
+            >
+              Projects
+            </a>
+            <a
+              href="#leaderboard"
+              className="font-mono text-[10px] sm:text-xs tracking-widest uppercase px-2 sm:px-4 py-2 text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-all duration-100 active:translate-y-px active:translate-x-px inline-block cursor-pointer"
+            >
+              Leaderboard
+            </a>
           </nav>
         </div>
       </header>
@@ -104,7 +107,7 @@ export default function App() {
         >
           <RevealSection>
             <div className="mono-label mb-6 md:mb-8 text-[10px] md:text-xs break-all">
-              § 01 — OVERVIEW // FORGE_PROJECTS
+              § 01 — OVERVIEW {/* FORGE_PROJECTS */}
             </div>
           </RevealSection>
           <RevealSection delay="0.1s">
@@ -118,7 +121,7 @@ export default function App() {
         >
           <RevealSection>
             <div className="mono-label mb-6 md:mb-8 text-[10px] md:text-xs break-all">
-              § 02 — RANKING // MERITOCRACY_BOARD
+              § 02 — RANKING {/* MERITOCRACY_BOARD */}
             </div>
           </RevealSection>
           <RevealSection delay="0.1s">
@@ -141,25 +144,25 @@ export default function App() {
               href="#"
               className="hover:text-accent transition-colors uppercase"
             >
-              // STATUS
+              {/* STATUS */}
             </a>
             <a
               href="#"
               className="hover:text-accent transition-colors uppercase"
             >
-              // API
+              {/* API */}
             </a>
             <a
               href="#"
               className="hover:text-accent transition-colors uppercase"
             >
-              // GITHUB
+              {/* GITHUB */}
             </a>
             <a
               href="#"
               className="hover:text-accent transition-colors uppercase"
             >
-              // DISCORD
+              {/* DISCORD */}
             </a>
           </div>
         </div>

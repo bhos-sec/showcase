@@ -43,9 +43,8 @@ class MemberLeaderboardView(ListAPIView):
             QuerySet of active Member instances with member_badges
             and badge prefetched to avoid N+1 queries.
         """
-        return (
-            Member.objects.filter(is_active=True)
-            .prefetch_related("member_badges__badge")
+        return Member.objects.filter(is_active=True).prefetch_related(
+            "member_badges__badge"
         )
 
 
@@ -65,10 +64,7 @@ class MemberDetailView(RetrieveAPIView):
         Returns:
             QuerySet with badges and contributions prefetched.
         """
-        return (
-            Member.objects.filter(is_active=True)
-            .prefetch_related(
-                "member_badges__badge",
-                "contributions__repository",
-            )
+        return Member.objects.filter(is_active=True).prefetch_related(
+            "member_badges__badge",
+            "contributions__repository",
         )
