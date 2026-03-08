@@ -90,9 +90,37 @@ class ComprehensiveScoringStrategy(ScoringStrategy):
         score = Decimal("0")
 
         # 1. Contribution count score (highest priority)
-        contribution_count = (
-            Contribution.objects.filter(member=member).count()
+        #
+        # Non-commit types (PRs, reviews, issues): each record = 1 contribution.
+        # Commit type: uses aggregated repo-stat records where
+        #   points = commit_weight × total_commits_in_repo
+        # Summing points and dividing by commit_weight recovers the effective
+        # commit count, which is then multiplied by CONTRIBUTION_WEIGHT.
+        non_commit_count = (
+            Contribution.objects.filter(member=member)
+            .exclude(contribution_type=ContributionType.COMMIT)
+            .count()
         )
+        commit_points = (
+            Contribution.objects.filter(
+                member=member, contribution_type=ContributionType.COMMIT
+            ).aggregate(total=Sum("points", default=0))["total"] or 0
+        )
+        try:
+            commit_weight = (
+                ScoringWeight.objects.get(
+                    contribution_type=ContributionType.COMMIT
+                ).weight
+            )
+        except ScoringWeight.DoesNotExist:
+            commit_weight = Decimal("1.0")
+
+        effective_commit_count = (
+            Decimal(str(commit_points)) / commit_weight
+            if commit_weight
+            else Decimal("0")
+        )
+        contribution_count = non_commit_count + int(effective_commit_count)
         contribution_score = Decimal(contribution_count) * self.CONTRIBUTION_WEIGHT
         logger.debug(
             "Member %s: %d contributions × %s = %s",
@@ -239,9 +267,34 @@ class ScoringService:
         # Phase 1: Calculate scores, contribution counts, and line changes.
         for member in members:
             member.score = self.calculate_score(member)
-            member.contributions_count = (
-                Contribution.objects.filter(member=member).count()
+
+            # contributions_count: reflect the effective number of individual
+            # contributions, not raw DB record count. Commits use aggregated
+            # repo-stat records where points = weight × commit_count, so we
+            # recover the commit count via Sum(points) / weight.
+            non_commit_count = (
+                Contribution.objects.filter(member=member)
+                .exclude(contribution_type=ContributionType.COMMIT)
+                .count()
             )
+            commit_points = (
+                Contribution.objects.filter(
+                    member=member, contribution_type=ContributionType.COMMIT
+                ).aggregate(total=Sum("points", default=0))["total"] or 0
+            )
+            try:
+                commit_weight = ScoringWeight.objects.get(
+                    contribution_type=ContributionType.COMMIT
+                ).weight
+            except ScoringWeight.DoesNotExist:
+                commit_weight = Decimal("1.0")
+
+            effective_commit_count = (
+                int(Decimal(str(commit_points)) / commit_weight)
+                if commit_weight
+                else 0
+            )
+            member.contributions_count = non_commit_count + effective_commit_count
             
             # Aggregate line changes from all contributions
             line_stats = (

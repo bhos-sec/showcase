@@ -14,6 +14,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from django.utils.dateparse import parse_datetime
+from django.utils import timezone as dj_timezone
 
 from apps.members.models import Contribution, ContributionType, Member, ScoringWeight
 from apps.projects.models import Project
@@ -116,9 +117,9 @@ class ContributionFactory:
             pr_data.get("merged_at") or pr_data.get("closed_at") or pr_data.get("created_at")
         )
 
-        additions = pr_data.get("additions", 0)
-        deletions = pr_data.get("deletions", 0)
-
+        # Additions/deletions are deliberately set to 0 on PR contributions.
+        # Line-change credit is tracked separately via commit contributions,
+        # so that the actual commit author (not the PR opener) receives credit.
         contribution, created = Contribution.objects.get_or_create(
             github_id=github_id,
             defaults={
@@ -128,19 +129,82 @@ class ContributionFactory:
                 "url": pr_data.get("html_url", ""),
                 "repository": repository,
                 "points": weight,
-                "additions": additions,
-                "deletions": deletions,
+                "additions": 0,
+                "deletions": 0,
                 "occurred_at": occurred_at,
             },
         )
-        
-        # Update line stats if they were just fetched (non-zero values)
-        if not created and (additions > 0 or deletions > 0):
-            if contribution.additions != additions or contribution.deletions != deletions:
-                contribution.additions = additions
-                contribution.deletions = deletions
-                contribution.save(update_fields=["additions", "deletions"])
-        
+
+        return contribution, created
+
+    @classmethod
+    def create_or_update_from_repo_stats(
+        cls,
+        member: Member,
+        repo_name: str,
+        total_commits: int,
+        total_additions: int = 0,
+        total_deletions: int = 0,
+        repository: Project | None = None,
+    ) -> tuple["Contribution", bool]:
+        """Create or update a single aggregated commit record for a repo.
+
+        Uses one ``Contribution`` record per (member, repo) to represent the
+        member's entire commit history in that repo, derived from the GitHub
+        ``/repos/{org}/{repo}/stats/contributors`` endpoint.
+
+        This avoids fetching and enriching individual commits, reducing API
+        calls from O(members × commits) to O(repos).
+
+        The ``points`` field stores ``commit_weight × total_commits`` so the
+        scoring engine can use ``Sum("points")`` for commit contributions and
+        recover the correct commit-count-weighted score.
+
+        .. note::
+            ``additions`` and ``deletions`` come from the weekly totals in
+            ``/stats/contributors`` — the same values GitHub shows in the
+            Contributors graph.
+
+        Args:
+            member: The member who authored the commits.
+            repo_name: Repository name (not the full owner/repo slug).
+            total_commits: Total commits by this member in the repo.
+            total_additions: Lines added (weekly stats total).
+            total_deletions: Lines deleted (weekly stats total).
+            repository: Optional explicit Project link.
+
+        Returns:
+            Tuple of (Contribution, created).
+        """
+        github_id = f"repo_stats_{member.github_username}_{repo_name}"
+        weight = cls._get_weight(ContributionType.COMMIT)
+
+        if not repository:
+            repository = cls._resolve_repository(repo_name)
+
+        points = weight * total_commits
+
+        contribution, created = Contribution.objects.get_or_create(
+            github_id=github_id,
+            defaults={
+                "member": member,
+                "contribution_type": ContributionType.COMMIT,
+                "title": f"Commits in {repo_name}",
+                "url": f"https://github.com/{member.github_username}",
+                "repository": repository,
+                "points": points,
+                "additions": total_additions,
+                "deletions": total_deletions,
+                "occurred_at": dj_timezone.now(),
+            },
+        )
+
+        if not created:
+            contribution.points = points
+            contribution.additions = total_additions
+            contribution.deletions = total_deletions
+            contribution.save(update_fields=["points", "additions", "deletions", "updated_at"])
+
         return contribution, created
 
     @classmethod
@@ -273,6 +337,15 @@ class ContributionFactory:
         """
         github_id = f"commit_{commit_data.get('sha', commit_data.get('id', ''))}"
         weight = cls._get_weight(ContributionType.COMMIT)
+
+        # Resolve repository from search API response if not provided explicitly.
+        # The Search Commits API includes a "repository" object with a "name" field.
+        if not repository:
+            repo_name = (
+                commit_data.get("repository", {}).get("name")
+                or commit_data.get("repo", {}).get("name")
+            )
+            repository = cls._resolve_repository(repo_name)
 
         commit_info = commit_data.get("commit", {})
         occurred_at = cls._parse_datetime(

@@ -27,7 +27,7 @@ import httpx
 from django.conf import settings
 from django.utils import timezone as dj_timezone
 
-from apps.members.models import Member
+from apps.members.models import Contribution, Member
 from apps.members.services.contribution_factory import ContributionFactory
 
 logger = logging.getLogger(__name__)
@@ -222,6 +222,83 @@ class GitHubProfileService:
         query = f"type:pr+author:{username}+org:{self._org}+is:merged{date_filter}"
         return self._search_issues(query)
 
+    def fetch_org_repos(self) -> list[dict]:
+        """Fetch all repositories in the organisation.
+
+        Returns:
+            List of repo dicts with at least a ``name`` key.
+        """
+        repos: list[dict] = []
+        page = 1
+        headers = self._rest_headers()
+
+        with httpx.Client(timeout=self._timeout) as client:
+            while True:
+                url = (
+                    f"{self._base_url}/orgs/{self._org}/repos"
+                    f"?per_page=100&page={page}&type=all"
+                )
+                response = client.get(url, headers=headers)
+                response.raise_for_status()
+                batch = response.json()
+                if not batch:
+                    break
+                repos.extend(batch)
+                if len(batch) < 100:
+                    break
+                page += 1
+
+        logger.info("Fetched %d repos from org '%s'.", len(repos), self._org)
+        return repos
+
+    def fetch_repo_contributor_stats(self, repo_name: str) -> list[dict]:
+        """Fetch aggregated contributor stats for a single repository.
+
+        Calls ``GET /repos/{org}/{repo}/stats/contributors`` which returns
+        per-contributor totals (commit count + weekly additions/deletions)
+        in a **single request** for the entire repo history.
+
+        GitHub may return HTTP 202 while it computes the stats cache;
+        this method retries with back-off in that case.
+
+        Args:
+            repo_name: Repository name (not the full ``owner/repo`` slug).
+
+        Returns:
+            List of contributor stat dicts, each with keys:
+            ``author`` (with ``login``), ``total`` (commit count),
+            and ``weeks`` (list of ``{w, a, d, c}`` dicts).
+        """
+        url = f"{self._base_url}/repos/{self._org}/{repo_name}/stats/contributors"
+        headers = self._rest_headers()
+
+        for attempt in range(6):
+            with httpx.Client(timeout=self._timeout) as client:
+                response = client.get(url, headers=headers)
+
+            if response.status_code == 202:
+                # GitHub is still computing the cache; retry with back-off.
+                wait = 3 * (attempt + 1)
+                logger.debug(
+                    "Stats cache not ready for '%s', retrying in %ds (attempt %d/6)",
+                    repo_name, wait, attempt + 1,
+                )
+                time.sleep(wait)
+                continue
+
+            if response.status_code == 204:
+                return []  # Empty repository.
+
+            response.raise_for_status()
+            data = response.json()
+            return data if isinstance(data, list) else []
+
+        logger.warning(
+            "Could not fetch contributor stats for '%s' after retries — skipping.",
+            repo_name,
+        )
+        return []
+
     def fetch_member_issues(
         self,
         username: str,
@@ -332,38 +409,6 @@ class GitHubProfileService:
         
         return pr_data
 
-    def _enrich_commit_with_stats(self, commit_data: dict) -> dict:
-        """Fetch and add additions/deletions to commit data.
-
-        Fetches detailed commit info from the direct commit endpoint.
-
-        Args:
-            commit_data: Commit data dict.
-
-        Returns:
-            Commit data dict enriched with additions and deletions.
-        """
-        try:
-            if "url" in commit_data:
-                url = commit_data["url"]
-                headers = self._rest_headers()
-                
-                with httpx.Client(timeout=self._timeout) as client:
-                    response = client.get(url, headers=headers)
-                    response.raise_for_status()
-                    commit_details = response.json()
-                    
-                    # Add line stats from detailed endpoint
-                    commit_data["additions"] = commit_details.get("stats", {}).get("additions", 0)
-                    commit_data["deletions"] = commit_details.get("stats", {}).get("deletions", 0)
-        except Exception as exc:
-            logger.warning("Failed to fetch commit stats for %s: %s", commit_data.get("url"), exc)
-            # Fallback to 0 if fetch fails
-            commit_data.setdefault("additions", 0)
-            commit_data.setdefault("deletions", 0)
-        
-        return commit_data
-
     # ------------------------------------------------------------------
     # Public API — Sync orchestration
     # ------------------------------------------------------------------
@@ -390,11 +435,13 @@ class GitHubProfileService:
             result.errors.append(f"Avatar update failed: {exc}")
 
         # Fetch and create PR contributions.
+        # Note: additions/deletions are intentionally NOT stored on PR contributions.
+        # Line-change credit is attributed via commit contributions below, so that
+        # the person who *wrote* the code (commit author) gets credit — not the
+        # person who merely opened the PR.
         try:
             prs = self.fetch_member_prs(username)
             for pr_data in prs:
-                # Enrich with additions/deletions from PR detail endpoint
-                pr_data = self._enrich_pr_with_stats(pr_data)
                 _, created = ContributionFactory.create_from_pull_request(
                     member=member, pr_data=pr_data
                 )
@@ -404,6 +451,11 @@ class GitHubProfileService:
             error_msg = f"PR sync failed for {username}: {exc}"
             logger.exception(error_msg)
             result.errors.append(error_msg)
+
+        # Commit contributions are synced org-wide via _sync_all_contributor_stats()
+        # (called once in sync_all_members) rather than per-member, because the
+        # /repos/{org}/{repo}/stats/contributors endpoint returns aggregated stats
+        # for ALL contributors in one call per repo — far more efficient.
 
         # Fetch and create issue contributions.
         try:
@@ -447,6 +499,13 @@ class GitHubProfileService:
 
         total_created = sum(r.total_created for r in results)
         total_errors = sum(len(r.errors) for r in results)
+
+        # Sync commit stats for all members in one org-wide pass.
+        # One API call per repo instead of num_members × num_commits calls.
+        members_map = {m.github_username.lower(): m for m in members}
+        stats_created = self._sync_all_contributor_stats(members_map)
+        total_created += stats_created
+
         logger.info(
             "Full member sync complete: %d members, %d new contributions, %d errors.",
             len(results),
@@ -484,6 +543,93 @@ class GitHubProfileService:
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
+
+    def _sync_all_contributor_stats(self, members_map: dict) -> int:
+        """Sync commit stats for all members from org-wide contributor stats.
+
+        Instead of searching commits per member and enriching each commit
+        individually (O(members × commits) HTTP calls), this method calls
+        ``GET /repos/{org}/{repo}/stats/contributors`` **once per repo**.
+        Each response contains aggregated additions, deletions, and commit
+        counts for every contributor — covering the full repo history.
+
+        A single ``Contribution`` record of type ``COMMIT`` is created (or
+        updated) per (member, repo) pair. The record's ``points`` field
+        stores ``commit_weight × total_commits`` so the scoring engine
+        can use ``Sum("points")`` to get the correct commit-count-weighted
+        score without counting individual records.
+
+        Args:
+            members_map: Dict mapping lowercased GitHub username to the
+                corresponding active ``Member`` instance.
+
+        Returns:
+            Number of new contribution records created.
+        """
+        repos = self.fetch_org_repos()
+        created_total = 0
+
+        # Remove legacy per-commit records (github_id = "commit_{sha}") that
+        # were created by the old per-member search approach.
+        members = list(members_map.values())
+        deleted, _ = (
+            Contribution.objects.filter(
+                member__in=members,
+                contribution_type="COMMIT",
+                github_id__startswith="commit_",
+            )
+            .delete()
+        )
+        if deleted:
+            logger.info(
+                "Removed %d legacy per-commit records before aggregated stats sync.",
+                deleted,
+            )
+
+        for repo in repos:
+            repo_name = repo["name"]
+            stats = self.fetch_repo_contributor_stats(repo_name)
+            if not stats:
+                continue
+
+            for contributor in stats:
+                login = (contributor.get("author") or {}).get("login", "")
+                if not login:
+                    continue
+
+                member = members_map.get(login.lower())
+                if not member:
+                    continue
+
+                total_commits = contributor.get("total", 0)
+                if total_commits == 0:
+                    continue
+
+                # Sum weekly additions/deletions from the stats endpoint.
+                # These match exactly what GitHub shows in the Contributors
+                # graph — one call per repo covers all contributors.
+                weeks = contributor.get("weeks", [])
+                total_additions = sum(w.get("a", 0) for w in weeks)
+                total_deletions = sum(w.get("d", 0) for w in weeks)
+
+                _, created = ContributionFactory.create_or_update_from_repo_stats(
+                    member=member,
+                    repo_name=repo_name,
+                    total_commits=total_commits,
+                    total_additions=total_additions,
+                    total_deletions=total_deletions,
+                )
+                if created:
+                    created_total += 1
+
+            time.sleep(0.5)
+
+        logger.info(
+            "Contributor stats sync done: %d repos processed, %d new records.",
+            len(repos),
+            created_total,
+        )
+        return created_total
 
     def _update_avatar(self, member: Member) -> None:
         """Update a member's avatar URL from their GitHub profile.
