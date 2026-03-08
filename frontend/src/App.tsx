@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Logo } from "./components/Logo";
 import { Forge } from "./components/Forge";
 import { Leaderboard } from "./components/Leaderboard";
@@ -17,12 +18,12 @@ function RevealSection({
   return (
     <div ref={ref} className={`overflow-hidden ${className}`}>
       <div
-        className="opacity-0 translate-y-[100%]"
-        style={{
-          animation: isIntersecting
-            ? `revealUp 0.6s cubic-bezier(0.16,1,0.3,1) ${delay} forwards`
-            : "none",
-        }}
+        className={`transition-all duration-700 ease-out transform ${
+          isIntersecting
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-12"
+        }`}
+        style={{ transitionDelay: delay }}
       >
         {children}
       </div>
@@ -31,54 +32,69 @@ function RevealSection({
 }
 
 export default function App() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground font-sans relative selection:bg-accent selection:text-accent-foreground">
-      {/* Main Content */}
-      <main className="relative z-10 max-w-6xl mx-auto px-6 py-12 md:py-24 flex flex-col gap-32">
-        {/* Navigation / Header */}
-        <header className="flex justify-between items-start border-b border-dashed border-border-dashed pb-6">
-          <RevealSection>
-            <Logo className="h-10 w-auto mb-2 opacity-90 hover:opacity-100 transition-opacity" />
-            <div className="mono-label mt-2 text-[10px] text-muted-foreground tracking-widest">
-              // SYS.INIT: CORE_HUB
-            </div>
-          </RevealSection>
-          <RevealSection delay="0.1s">
-            <div className="flex gap-6">
-              <span className="mono-label cursor-pointer hover:text-accent transition-colors">
-                [01] STATUS
-              </span>
-              <span className="mono-label cursor-pointer hover:text-accent transition-colors">
-                [02] DOCS
-              </span>
-            </div>
-          </RevealSection>
-        </header>
+      {/* Header Navigation */}
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 bg-background/80 backdrop-blur-md ${
+          scrolled
+            ? "border-b border-dashed border-border-dashed"
+            : "border-b border-dashed border-transparent"
+        }`}
+      >
+        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img
+              src="/bhos-logo.svg"
+              alt="BHOS Logo"
+              className="h-9 w-auto object-contain select-none"
+              draggable={false}
+            />
+            <span className="font-mono text-xs text-muted-foreground select-none">
+              ×
+            </span>
+            <Logo className="h-7 w-auto opacity-90 hover:opacity-100 transition-opacity select-none" />
+          </div>
+          <nav className="flex items-center gap-1">
+            <button className="font-mono text-xs tracking-widest uppercase px-4 py-2 text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-all duration-100 active:translate-y-px active:translate-x-px">
+              Aim
+            </button>
+            <button className="font-mono text-xs tracking-widest uppercase px-4 py-2 text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-all duration-100 active:translate-y-px active:translate-x-px">
+              Pillars
+            </button>
+            <button className="font-mono text-xs tracking-widest uppercase px-4 py-2 text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-all duration-100 active:translate-y-px active:translate-x-px">
+              Apply
+            </button>
+          </nav>
+        </div>
+      </header>
 
+      {/* Main Content */}
+      <main className="relative z-10 max-w-6xl mx-auto px-6 py-24 md:py-32 flex flex-col gap-24">
         {/* Hero Section */}
         <section className="flex flex-col gap-6 max-w-3xl">
-          <RevealSection delay="0.2s">
+          <RevealSection delay="0.1s">
             <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-[1.1] text-foreground lowercase">
               the showcase.
             </h1>
           </RevealSection>
-          <RevealSection delay="0.3s">
+          <RevealSection delay="0.2s">
             <p className="text-lg md:text-xl font-mono text-muted-foreground leading-relaxed tracking-tight border-l-2 border-accent pl-4">
               Central engineering hub for the BHOS Software Engineering
               Collective. Build, learn, and collaborate on open-source
               infrastructure.
             </p>
-          </RevealSection>
-          <RevealSection delay="0.4s">
-            <div className="flex gap-4 mt-6">
-              <button className="btn-mechanical group">
-                Initialize{" "}
-                <span className="inline-block w-2 bg-accent h-4 ml-2 align-middle opacity-0 group-hover:opacity-100 animate-blink"></span>
-              </button>
-              <button className="btn-mechanical bg-secondary/30 border-dashed border-border-dashed hover:border-accent">
-                Documentation
-              </button>
-            </div>
           </RevealSection>
         </section>
 
@@ -115,7 +131,7 @@ export default function App() {
       <footer className="relative z-10 border-t border-dashed border-border-dashed bg-secondary/20 mt-32">
         <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <Logo className="h-6 w-auto opacity-30 grayscale" />
+            <Logo className="h-6 w-auto opacity-30 grayscale select-none" />
             <p className="mono-label text-[10px]">
               &copy; {new Date().getFullYear()} BHOS SEC. ALL RIGHTS RESERVED.
             </p>

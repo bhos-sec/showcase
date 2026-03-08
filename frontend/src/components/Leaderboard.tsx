@@ -130,8 +130,9 @@ export function Leaderboard() {
                             <img
                               src={member.avatar}
                               alt={member.name}
-                              className="w-10 h-10 border border-border grayscale group-hover:grayscale-0 transition-all"
+                              className="w-10 h-10 border border-border grayscale group-hover:grayscale-0 transition-all select-none"
                               referrerPolicy="no-referrer"
+                              draggable={false}
                             />
                             <div>
                               <p className="font-bold text-foreground text-sm lowercase tracking-tight">
