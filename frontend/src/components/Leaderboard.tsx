@@ -45,40 +45,40 @@ export function Leaderboard() {
 
   return (
     <section className="flex flex-col gap-6">
-      <div className="flex items-center justify-between border-b border-border pb-4">
-        <h2 className="text-xl font-bold tracking-tighter text-foreground uppercase">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-border pb-4 gap-4 sm:gap-0">
+        <h2 className="text-lg md:text-xl font-bold tracking-tighter text-foreground uppercase">
           Collective Leaderboard
         </h2>
-        <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
-          <Trophy className="w-3.5 h-3.5 text-accent" />
+        <div className="flex items-center gap-2 text-[9px] md:text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+          <Trophy className="w-3 md:w-3.5 h-3 md:h-3.5 text-accent" />
           <span>[ MERITOCRACY_RANKING ]</span>
         </div>
       </div>
 
       <div className="bg-secondary/10 border border-border overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-[600px] md:min-w-full">
             <thead>
               <tr className="border-b border-border bg-secondary/30">
-                <th className="p-4 text-[10px] font-mono text-muted-foreground uppercase tracking-widest border-r border-dashed border-border-dashed w-16 text-center">
+                <th className="p-3 md:p-4 text-[9px] md:text-[10px] font-mono text-muted-foreground uppercase tracking-widest border-r border-dashed border-border-dashed w-12 md:w-16 text-center whitespace-nowrap">
                   Rnk
                 </th>
-                <th className="p-4 text-[10px] font-mono text-muted-foreground uppercase tracking-widest border-r border-dashed border-border-dashed">
+                <th className="p-3 md:p-4 text-[9px] md:text-[10px] font-mono text-muted-foreground uppercase tracking-widest border-r border-dashed border-border-dashed whitespace-nowrap">
                   Engineer
                 </th>
-                <th className="p-4 text-[10px] font-mono text-muted-foreground uppercase tracking-widest border-r border-dashed border-border-dashed">
+                <th className="p-3 md:p-4 text-[9px] md:text-[10px] font-mono text-muted-foreground uppercase tracking-widest border-r border-dashed border-border-dashed whitespace-nowrap">
                   Tier
                 </th>
-                <th className="p-4 text-[10px] font-mono text-muted-foreground uppercase tracking-widest border-r border-dashed border-border-dashed text-right">
+                <th className="p-3 md:p-4 text-[9px] md:text-[10px] font-mono text-muted-foreground uppercase tracking-widest border-r border-dashed border-border-dashed text-right whitespace-nowrap">
                   Score
                 </th>
-                <th className="p-4 text-[10px] font-mono text-muted-foreground uppercase tracking-widest border-r border-dashed border-border-dashed hidden md:table-cell">
+                <th className="p-3 md:p-4 text-[9px] md:text-[10px] font-mono text-muted-foreground uppercase tracking-widest border-r border-dashed border-border-dashed hidden md:table-cell whitespace-nowrap">
                   Impact
                 </th>
-                <th className="p-4 text-[10px] font-mono text-muted-foreground uppercase tracking-widest border-r border-dashed border-border-dashed hidden lg:table-cell">
+                <th className="p-3 md:p-4 text-[9px] md:text-[10px] font-mono text-muted-foreground uppercase tracking-widest border-r border-dashed border-border-dashed hidden lg:table-cell whitespace-nowrap">
                   Lines
                 </th>
-                <th className="p-4 text-[10px] font-mono text-muted-foreground uppercase tracking-widest hidden lg:table-cell">
+                <th className="p-3 md:p-4 text-[9px] md:text-[10px] font-mono text-muted-foreground uppercase tracking-widest hidden lg:table-cell whitespace-nowrap">
                   Badges
                 </th>
               </tr>
@@ -88,26 +88,26 @@ export function Leaderboard() {
                 ? // Loading skeletons
                   Array.from({ length: MEMBERS_PER_PAGE }).map((_, i) => (
                     <tr key={i} className="bg-secondary/5 animate-pulse">
-                      <td className="p-4 border-r border-dashed border-border-dashed">
-                        <div className="h-6 w-6 bg-secondary mx-auto" />
+                      <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
+                        <div className="h-5 w-5 md:h-6 md:w-6 bg-secondary mx-auto" />
                       </td>
-                      <td className="p-4 border-r border-dashed border-border-dashed">
-                        <div className="h-4 w-32 bg-secondary" />
+                      <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
+                        <div className="h-3 md:h-4 w-24 md:w-32 bg-secondary" />
                       </td>
-                      <td className="p-4 border-r border-dashed border-border-dashed">
-                        <div className="h-4 w-16 bg-secondary" />
+                      <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
+                        <div className="h-3 md:h-4 w-12 md:w-16 bg-secondary" />
                       </td>
-                      <td className="p-4 border-r border-dashed border-border-dashed">
-                        <div className="h-4 w-20 bg-secondary ml-auto" />
+                      <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
+                        <div className="h-3 md:h-4 w-16 md:w-20 bg-secondary ml-auto" />
                       </td>
-                      <td className="p-4 border-r border-dashed border-border-dashed hidden md:table-cell">
-                        <div className="h-4 w-24 bg-secondary" />
+                      <td className="p-3 md:p-4 border-r border-dashed border-border-dashed hidden md:table-cell">
+                        <div className="h-3 md:h-4 w-20 md:w-24 bg-secondary" />
                       </td>
-                      <td className="p-4 border-r border-dashed border-border-dashed hidden lg:table-cell">
-                        <div className="h-4 w-40 bg-secondary" />
+                      <td className="p-3 md:p-4 border-r border-dashed border-border-dashed hidden lg:table-cell">
+                        <div className="h-3 md:h-4 w-32 md:w-40 bg-secondary" />
                       </td>
-                      <td className="p-4 hidden lg:table-cell">
-                        <div className="h-4 w-40 bg-secondary" />
+                      <td className="p-3 md:p-4 hidden lg:table-cell">
+                        <div className="h-3 md:h-4 w-32 md:w-40 bg-secondary" />
                       </td>
                     </tr>
                   ))
@@ -120,28 +120,33 @@ export function Leaderboard() {
                         key={member.id}
                         className="group hover:bg-secondary/20 transition-colors"
                       >
-                        <td className="p-4 font-mono text-muted-foreground user-select-none border-r border-dashed border-border-dashed text-center">
-                          <div className="text-xs">
+                        <td className="p-3 md:p-4 font-mono text-muted-foreground user-select-none border-r border-dashed border-border-dashed text-center">
+                          <div className="text-[10px] md:text-xs">
                             {globalRank.toString().padStart(2, "0")}
                           </div>
                         </td>
-                        <td className="p-4 border-r border-dashed border-border-dashed">
-                          <div className="flex items-center gap-3">
+                        <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
+                          <a
+                            href={`https://github.com/${member.github}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity"
+                          >
                             <img
                               src={member.avatar}
                               alt={member.name}
-                              className="w-10 h-10 border border-border grayscale group-hover:grayscale-0 transition-all select-none"
+                              className="w-8 h-8 md:w-10 md:h-10 border border-border grayscale group-hover:grayscale-0 transition-all select-none flex-shrink-0"
                               referrerPolicy="no-referrer"
                               draggable={false}
                             />
                             <div>
-                              <p className="font-bold text-foreground text-sm lowercase tracking-tight">
+                              <p className="font-bold text-foreground text-xs md:text-sm tracking-tight break-all">
                                 {member.name}
                               </p>
-                              <div className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground mt-1 uppercase tracking-wider">
-                                <Github className="w-3 h-3" />
+                              <div className="flex flex-wrap items-center gap-1 text-[9px] md:text-[10px] font-mono text-muted-foreground mt-0.5 md:mt-1 uppercase tracking-wider">
+                                <Github className="w-2.5 h-2.5 md:w-3 md:h-3" />
                                 <span>{member.github}</span>
-                                <span className="mx-1 text-border-dashed">
+                                <span className="mx-0.5 md:mx-1 text-border-dashed">
                                   /
                                 </span>
                                 <span>
@@ -150,23 +155,23 @@ export function Leaderboard() {
                                 </span>
                               </div>
                             </div>
-                          </div>
+                          </a>
                         </td>
-                        <td className="p-4 border-r border-dashed border-border-dashed">
+                        <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
                           <span
-                            className={`px-2 py-1 text-[10px] font-mono border uppercase tracking-wider ${tierStyle.bg} ${tierStyle.color} ${tierStyle.border}`}
+                            className={`px-1.5 py-0.5 md:px-2 md:py-1 text-[9px] md:text-[10px] font-mono border uppercase tracking-wider whitespace-nowrap ${tierStyle.bg} ${tierStyle.color} ${tierStyle.border}`}
                           >
                             {member.tier}
                           </span>
                         </td>
-                        <td className="p-4 text-right user-select-none border-r border-dashed border-border-dashed">
-                          <div className="font-mono font-bold text-accent text-sm">
+                        <td className="p-3 md:p-4 text-right user-select-none border-r border-dashed border-border-dashed">
+                          <div className="font-mono font-bold text-accent text-xs md:text-sm">
                             <Counter value={member.score} />
                           </div>
                         </td>
-                        <td className="p-4 hidden md:table-cell user-select-none border-r border-dashed border-border-dashed">
-                          <div className="flex items-center gap-3">
-                            <div className="flex-grow h-1 bg-secondary overflow-hidden w-24">
+                        <td className="p-3 md:p-4 hidden md:table-cell user-select-none border-r border-dashed border-border-dashed">
+                          <div className="flex items-center gap-2 md:gap-3">
+                            <div className="flex-grow h-0.5 md:h-1 bg-secondary overflow-hidden w-20 md:w-24">
                               <div
                                 className="h-full"
                                 style={{
@@ -178,13 +183,13 @@ export function Leaderboard() {
                                 }}
                               />
                             </div>
-                            <span className="text-[10px] font-mono text-muted-foreground w-8">
+                            <span className="text-[9px] md:text-[10px] font-mono text-muted-foreground w-8">
                               {member.impact}%
                             </span>
                           </div>
                         </td>
-                        <td className="p-4 hidden lg:table-cell user-select-none border-r border-dashed border-border-dashed">
-                          <div className="flex items-center gap-3 text-[10px] font-mono">
+                        <td className="p-3 md:p-4 hidden lg:table-cell user-select-none border-r border-dashed border-border-dashed">
+                          <div className="flex items-center gap-2 md:gap-3 text-[9px] md:text-[10px] font-mono">
                             <span className="text-accent">
                               +{member.additions.toLocaleString()}
                             </span>
@@ -193,25 +198,25 @@ export function Leaderboard() {
                             </span>
                           </div>
                         </td>
-                        <td className="p-4 hidden lg:table-cell user-select-none">
-                          <div className="flex flex-wrap gap-2">
+                        <td className="p-3 md:p-4 hidden lg:table-cell user-select-none">
+                          <div className="flex flex-wrap gap-1 md:gap-2">
                             {member.badges.map((badge) => (
                               <span
                                 key={badge}
-                                className="flex items-center gap-1 px-1.5 py-0.5 text-[9px] uppercase tracking-widest font-mono border border-border bg-background text-muted-foreground"
+                                className="flex items-center gap-1 px-1 py-0.5 md:px-1.5 md:py-0.5 text-[8px] md:text-[9px] uppercase tracking-widest font-mono border border-border bg-background text-muted-foreground whitespace-nowrap"
                                 title={badge}
                               >
                                 {badge === "Architect" && (
-                                  <Shield className="w-2.5 h-2.5 text-purple-400" />
+                                  <Shield className="w-2 h-2 md:w-2.5 md:h-2.5 text-purple-400" />
                                 )}
                                 {badge === "Visionary" && (
-                                  <Star className="w-2.5 h-2.5 text-amber-400" />
+                                  <Star className="w-2 h-2 md:w-2.5 md:h-2.5 text-amber-400" />
                                 )}
                                 {badge === "Reviewer" && (
-                                  <Award className="w-2.5 h-2.5 text-blue-400" />
+                                  <Award className="w-2 h-2 md:w-2.5 md:h-2.5 text-blue-400" />
                                 )}
                                 {badge === "Optimizer" && (
-                                  <Zap className="w-2.5 h-2.5 text-accent" />
+                                  <Zap className="w-2 h-2 md:w-2.5 md:h-2.5 text-accent" />
                                 )}
                                 {badge}
                               </span>
@@ -227,23 +232,23 @@ export function Leaderboard() {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between p-4 border-t border-border bg-secondary/30">
-            <div className="text-[10px] uppercase font-mono text-muted-foreground tracking-widest">
+          <div className="flex flex-col sm:flex-row items-center justify-between p-3 md:p-4 border-t border-border bg-secondary/30 gap-3 sm:gap-0">
+            <div className="text-[9px] md:text-[10px] uppercase font-mono text-muted-foreground tracking-widest text-center sm:text-left">
               // IDX: {startIndex.toString().padStart(2, "0")} -{" "}
               {(Math.min(startIndex + MEMBERS_PER_PAGE, totalCount) - 1)
                 .toString()
                 .padStart(2, "0")}{" "}
               / {totalCount} TOTAL
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-start">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-1 border border-border disabled:opacity-50 disabled:cursor-not-allowed text-muted-foreground hover:bg-foreground hover:text-background transition-colors cursor-pointer"
+                className="p-1 px-3 sm:px-1 border border-border disabled:opacity-50 disabled:cursor-not-allowed text-muted-foreground hover:bg-foreground hover:text-background transition-colors cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <div className="px-4 text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+              <div className="px-4 text-[9px] md:text-[10px] font-mono text-muted-foreground uppercase tracking-widest text-center flex-grow sm:flex-grow-0">
                 PG_{currentPage.toString().padStart(2, "0")}/
                 {totalPages.toString().padStart(2, "0")}
               </div>
@@ -252,7 +257,7 @@ export function Leaderboard() {
                   setCurrentPage((p) => Math.min(totalPages, p + 1))
                 }
                 disabled={currentPage === totalPages || !hasNextPage}
-                className="p-1 border border-border disabled:opacity-50 disabled:cursor-not-allowed text-muted-foreground hover:bg-foreground hover:text-background transition-colors cursor-pointer"
+                className="p-1 px-3 sm:px-1 border border-border disabled:opacity-50 disabled:cursor-not-allowed text-muted-foreground hover:bg-foreground hover:text-background transition-colors cursor-pointer"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>

@@ -54,26 +54,26 @@ export default function App() {
         }`}
       >
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <img
               src="/bhos-logo.svg"
               alt="BHOS Logo"
-              className="h-9 w-auto object-contain select-none"
+              className="h-7 sm:h-9 w-auto object-contain select-none"
               draggable={false}
             />
-            <span className="font-mono text-xs text-muted-foreground select-none">
+            <span className="font-mono text-[10px] sm:text-xs text-muted-foreground select-none">
               ×
             </span>
-            <Logo className="h-7 w-auto opacity-90 hover:opacity-100 transition-opacity select-none" />
+            <Logo className="h-5 sm:h-7 w-auto opacity-90 hover:opacity-100 transition-opacity select-none" />
           </div>
-          <nav className="flex items-center gap-1">
-            <button className="font-mono text-xs tracking-widest uppercase px-4 py-2 text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-all duration-100 active:translate-y-px active:translate-x-px">
+          <nav className="flex items-center gap-0 sm:gap-1">
+            <button className="font-mono text-[10px] sm:text-xs tracking-widest uppercase px-2 sm:px-4 py-2 text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-all duration-100 active:translate-y-px active:translate-x-px">
               Aim
             </button>
-            <button className="font-mono text-xs tracking-widest uppercase px-4 py-2 text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-all duration-100 active:translate-y-px active:translate-x-px">
+            <button className="font-mono text-[10px] sm:text-xs tracking-widest uppercase px-2 sm:px-4 py-2 text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-all duration-100 active:translate-y-px active:translate-x-px">
               Pillars
             </button>
-            <button className="font-mono text-xs tracking-widest uppercase px-4 py-2 text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-all duration-100 active:translate-y-px active:translate-x-px">
+            <button className="font-mono text-[10px] sm:text-xs tracking-widest uppercase px-2 sm:px-4 py-2 text-muted-foreground hover:text-foreground border border-transparent hover:border-border transition-all duration-100 active:translate-y-px active:translate-x-px hidden sm:block">
               Apply
             </button>
           </nav>
@@ -81,16 +81,16 @@ export default function App() {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 max-w-6xl mx-auto px-6 py-24 md:py-32 flex flex-col gap-24">
+      <main className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-20 md:py-32 flex flex-col gap-16 md:gap-24 overflow-x-hidden">
         {/* Hero Section */}
-        <section className="flex flex-col gap-6 max-w-3xl">
+        <section className="flex flex-col gap-4 md:gap-6 max-w-3xl">
           <RevealSection delay="0.1s">
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-[1.1] text-foreground lowercase">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter leading-[1.1] text-foreground lowercase break-words">
               the showcase.
             </h1>
           </RevealSection>
           <RevealSection delay="0.2s">
-            <p className="text-lg md:text-xl font-mono text-muted-foreground leading-relaxed tracking-tight border-l-2 border-accent pl-4">
+            <p className="text-base sm:text-lg md:text-xl font-mono text-muted-foreground leading-relaxed tracking-tight border-l-2 border-accent pl-4">
               Central engineering hub for the BHOS Software Engineering
               Collective. Build, learn, and collaborate on open-source
               infrastructure.
@@ -100,10 +100,10 @@ export default function App() {
 
         <section
           id="forge"
-          className="pt-8 border-t border-dashed border-border-dashed"
+          className="pt-8 border-t border-dashed border-border-dashed w-full"
         >
           <RevealSection>
-            <div className="mono-label mb-8">
+            <div className="mono-label mb-6 md:mb-8 text-[10px] md:text-xs break-all">
               § 01 — OVERVIEW // FORGE_PROJECTS
             </div>
           </RevealSection>
@@ -114,10 +114,10 @@ export default function App() {
 
         <section
           id="leaderboard"
-          className="pt-8 border-t border-dashed border-border-dashed"
+          className="pt-8 border-t border-dashed border-border-dashed w-full"
         >
           <RevealSection>
-            <div className="mono-label mb-8">
+            <div className="mono-label mb-6 md:mb-8 text-[10px] md:text-xs break-all">
               § 02 — RANKING // MERITOCRACY_BOARD
             </div>
           </RevealSection>
@@ -128,15 +128,15 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-dashed border-border-dashed bg-secondary/20 mt-32">
-        <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <Logo className="h-6 w-auto opacity-30 grayscale select-none" />
-            <p className="mono-label text-[10px]">
+      <footer className="relative z-10 border-t border-dashed border-border-dashed bg-secondary/20 mt-20 md:mt-32">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 md:py-12 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
+          <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+            <Logo className="h-5 sm:h-6 w-auto opacity-30 grayscale select-none" />
+            <p className="mono-label text-[9px] sm:text-[10px]">
               &copy; {new Date().getFullYear()} BHOS SEC. ALL RIGHTS RESERVED.
             </p>
           </div>
-          <div className="flex items-center gap-6 text-xs font-mono text-muted-foreground">
+          <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 text-[10px] sm:text-xs font-mono text-muted-foreground">
             <a
               href="#"
               className="hover:text-accent transition-colors uppercase"
