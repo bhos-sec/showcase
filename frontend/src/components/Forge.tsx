@@ -13,13 +13,8 @@ export function Forge() {
   if (error) {
     return (
       <section className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold font-mono text-white tracking-tight flex items-center gap-3">
-            <span className="text-[var(--color-bhos-mint)]">/</span> Forge
-          </h2>
-        </div>
-        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-          Failed to load projects. Please try again later.
+        <div className="p-4 bg-red-950/30 border border-dashed border-red-900 text-red-500 font-mono text-xs uppercase tracking-wider">
+          // ERR: FAILED_TO_LOAD_PROJECTS
         </div>
       </section>
     );
@@ -27,15 +22,15 @@ export function Forge() {
 
   return (
     <section className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold font-mono text-white tracking-tight flex items-center gap-3">
-          <span className="text-[var(--color-bhos-mint)]">/</span> Forge
+      <div className="flex items-center justify-between border-b border-border pb-4">
+        <h2 className="text-xl font-bold tracking-tighter text-foreground uppercase">
+          Forge Projects
         </h2>
         <button
           onClick={() => setShowAll(!showAll)}
-          className="text-sm font-mono text-[var(--color-bhos-mint)] user-select-none"
+          className="btn-mechanical text-xs px-4 py-2"
         >
-          {showAll ? "Show Less \u2191" : "View All Projects \u2192"}
+          {showAll ? "[ SHOW_LESS ]" : "[ VIEW_ALL_PROJECTS ]"}
         </button>
       </div>
 
@@ -45,11 +40,11 @@ export function Forge() {
             Array.from({ length: INITIAL_PROJECTS_SHOWN }).map((_, i) => (
               <div
                 key={i}
-                className="bg-slate-800/30 bg-[var(--color-bhos-navy-light)] border border-[var(--color-bhos-border)] rounded-xl p-6 h-64"
+                className="bg-secondary/10 border-dashed border-border-dashed p-6 h-64"
               >
-                <div className="h-6 bg-slate-700 rounded w-3/4 mb-4" />
-                <div className="h-4 bg-slate-700 rounded w-full mb-3" />
-                <div className="h-4 bg-slate-700 rounded w-5/6" />
+                <div className="h-6 bg-secondary rounded-none w-3/4 mb-4 animate-pulse" />
+                <div className="h-4 bg-secondary rounded-none w-full mb-3 animate-pulse" />
+                <div className="h-4 bg-secondary rounded-none w-5/6 animate-pulse" />
               </div>
             ))
           : displayedProjects.map((project) => (
@@ -58,17 +53,17 @@ export function Forge() {
                 href={project.homepage_url || project.github_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative bg-[var(--color-bhos-navy-light)] border border-[var(--color-bhos-border)] hover:border-[var(--color-bhos-mint)] rounded-xl p-6 overflow-hidden transition-colors block"
+                className="group relative bg-secondary/10 border border-border hover:border-accent p-6 overflow-hidden transition-colors block"
               >
                 <div className="flex flex-col h-full">
                   <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-xl font-bold text-white user-select-none">
+                    <h3 className="text-lg font-bold text-foreground user-select-none lowercase tracking-tight">
                       {project.name}
                     </h3>
                     <div className="flex items-center gap-2">
-                      <ExternalLink className="w-4 h-4 text-[var(--color-bhos-mint)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                      <ExternalLink className="w-4 h-4 text-accent opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                       <span
-                        className={`px-2 py-1 text-xs font-mono rounded border ${
+                        className={`px-2 py-1 text-[10px] uppercase font-mono border-dashed border ${
                           PROJECT_STATUS_COLORS[
                             project.status as keyof typeof PROJECT_STATUS_COLORS
                           ]
@@ -79,18 +74,18 @@ export function Forge() {
                     </div>
                   </div>
 
-                  <p className="text-slate-400 text-sm mb-6 flex-grow">
+                  <p className="text-muted-foreground text-sm mb-6 flex-grow leading-relaxed font-mono">
                     {project.description}
                   </p>
 
-                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-[var(--color-bhos-border)]">
-                    <div className="flex items-center gap-4 text-slate-300 text-sm font-mono user-select-none">
-                      <div className="flex items-center gap-1.5">
-                        <Star className="w-4 h-4" />
+                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-dashed border-border-dashed">
+                    <div className="flex items-center gap-4 text-muted-foreground text-xs font-mono user-select-none">
+                      <div className="flex items-center gap-1.5 hover:text-accent transition-colors">
+                        <Star className="w-3.5 h-3.5" />
                         <span>{project.stars}</span>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <GitFork className="w-4 h-4" />
+                      <div className="flex items-center gap-1.5 hover:text-accent transition-colors">
+                        <GitFork className="w-3.5 h-3.5" />
                         <span>{project.forks}</span>
                       </div>
                     </div>
@@ -99,7 +94,7 @@ export function Forge() {
                       {project.languages.map((lang) => (
                         <span
                           key={lang}
-                          className="w-2 h-2 rounded-full bg-[var(--color-bhos-mint)] opacity-80"
+                          className="w-1.5 h-1.5 rounded-none bg-accent opacity-80 group-hover:animate-pulse"
                           title={lang}
                         />
                       ))}

@@ -1,45 +1,87 @@
 @import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap");
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
-
-  --color-bhos-navy: #050b14;
-  --color-bhos-navy-light: #0a1220;
-  --color-bhos-mint: #00ffa6;
-  --color-bhos-mint-dim: rgba(0, 255, 166, 0.15);
-  --color-bhos-border: rgba(255, 255, 255, 0.08);
+@layer base {
+  :root {
+    --background: 0 0% 7%;
+    --foreground: 0 0% 90%;
+    --primary: 0 0% 92%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 0 0% 12%;
+    --muted: 0 0% 13%;
+    --muted-foreground: 0 0% 50%;
+    --accent: 160 100% 50%; /* Stark neon green: #00FFA6 */
+    --accent-foreground: 0 0% 7%;
+    --border: 0 0% 20%;
+    --border-dashed: 0 0% 22%;
+    --grid-line: 0 0% 14%;
+    --radius: 0px;
+  }
 }
 
 body {
-  background-color: var(--color-bhos-navy);
-  color: #e2e8f0;
-  font-family: var(--font-sans);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 39px,
+      hsl(var(--grid-line)) 39px,
+      hsl(var(--grid-line)) 40px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 39px,
+      hsl(var(--grid-line)) 39px,
+      hsl(var(--grid-line)) 40px
+    );
+  background-size: 40px 40px;
+  background-attachment: fixed;
+  font-family: "Inter", system-ui, sans-serif;
   overflow-x: hidden;
 }
 
-/* Geometric grid overlay */
-.bg-grid {
-  background-size: 40px 40px;
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+/* Base resets & utilities */
+* {
+  border-color: hsl(var(--border));
 }
 
-/* Circuit trace schematics */
-.circuit-trace {
-  position: absolute;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--color-bhos-mint),
-    transparent
-  );
-  height: 1px;
-  width: 100%;
-  opacity: 0.3;
+*:focus-visible {
+  outline: 1px solid hsl(var(--accent));
+  outline-offset: -1px;
+}
+
+/* Cyber-Industrial Specific Utilities */
+.border-dashed-grid {
+  border: 1px dashed hsl(var(--border-dashed));
+}
+
+.mono-label {
+  font-family: var(--font-mono, "Geist Mono", monospace);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+
+.btn-mechanical {
+  @apply border border-foreground/70 font-mono text-sm tracking-widest uppercase px-6 py-3 transition-all duration-75 select-none cursor-pointer;
+  background: transparent;
+  color: hsl(var(--foreground));
+  border-radius: 0;
+}
+
+.btn-mechanical:hover {
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+}
+
+.btn-mechanical:active {
+  transform: translateY(1px) translateX(1px);
 }
 
 /* Custom scrollbar */
@@ -47,14 +89,15 @@ body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-bhos-navy);
+  background: hsl(var(--background));
+  border-left: 1px solid hsl(var(--border));
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  background: hsl(var(--muted-foreground));
+  border-radius: 0;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-bhos-mint);
+  background: hsl(var(--accent));
 }
 
 /* Prevent text selection */
