@@ -243,5 +243,7 @@ class LeaderboardImageView(View):
             return response
 
         except Exception as e:
-            logger.error(f"Failed to generate leaderboard image: {str(e)}", exc_info=True)
+            logger.error(
+                f"Failed to generate leaderboard image: {str(e)}", exc_info=True
+            )
             return HttpResponse(f"Failed to generate image: {str(e)}", status=500)
