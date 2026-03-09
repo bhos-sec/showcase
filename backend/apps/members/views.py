@@ -74,36 +74,67 @@ class MemberDetailView(RetrieveAPIView):
 
 class LeaderboardHTMLView(View):
     """Render leaderboard as a styled HTML page for GitHub README embeds.
-    
+
     Accessible at: /members/public/
-    
+
     Query Parameters:
         top: Number of top members to show (default: 10, max: 100)
-    
+
     Example:
         https://example.com/members/public/?top=10
     """
-    
+
     def get(self, request, *args, **kwargs):
         """Return HTML page with leaderboard table."""
         top = int(request.GET.get('top', 10))
-        
+
         # Limit to max 100
         top = min(top, 100)
-        
+
         # Fetch members
         queryset = Member.objects.filter(is_active=True).prefetch_related(
             "member_badges__badge"
         ).order_by("-score")[:top]
-        
+
         # Serialize
         serializer = MemberListSerializer(queryset, many=True)
         members_data = serializer.data
-        
+
         context = {
             'members': members_data,
             'top': len(members_data),
             'total_count': Member.objects.filter(is_active=True).count(),
         }
-        
+
         return render(request, 'leaderboard_public.html', context)
+
+class LeaderboardTableView(View):
+    """Render only the leaderboard table for embedding.
+    
+    Accessible at: /members/leaderboard-table/
+    
+    Query Parameters:
+        top: Number of top members to show (default: 10, max: 100)
+    
+    Example:
+        https://example.com/members/leaderboard-table/?top=15
+    """
+
+    def get(self, request, *args, **kwargs):
+        """Return HTML page with table only."""
+        top = int(request.GET.get('top', 10))
+        top = min(top, 100)
+
+        queryset = Member.objects.filter(is_active=True).prefetch_related(
+            "member_badges__badge"
+        ).order_by("-score")[:top]
+
+        serializer = MemberListSerializer(queryset, many=True)
+        
+        context = {
+            'members': serializer.data,
+            'top': len(serializer.data),
+            'total_count': Member.objects.filter(is_active=True).count(),
+        }
+
+        return render(request, 'leaderboard_table.html', context)
