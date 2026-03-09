@@ -7,10 +7,10 @@ strategic use of ``prefetch_related`` and ``select_related``.
 """
 
 from django.shortcuts import render
+from django.views import View
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView
-from rest_framework.views import APIView
 
 from .models import Member
 from .serializers import MemberDetailSerializer, MemberListSerializer
@@ -72,7 +72,7 @@ class MemberDetailView(RetrieveAPIView):
         )
 
 
-class LeaderboardHTMLView(APIView):
+class LeaderboardHTMLView(View):
     """Render leaderboard as a styled HTML page for GitHub README embeds.
     
     Accessible at: /members/public/
@@ -86,7 +86,7 @@ class LeaderboardHTMLView(APIView):
     
     def get(self, request, *args, **kwargs):
         """Return HTML page with leaderboard table."""
-        top = int(request.query_params.get('top', 10))
+        top = int(request.GET.get('top', 10))
         
         # Limit to max 100
         top = min(top, 100)
@@ -106,4 +106,4 @@ class LeaderboardHTMLView(APIView):
             'total_count': Member.objects.filter(is_active=True).count(),
         }
         
-        return render(request, 'leaderboard_html.html', context)
+        return render(request, 'leaderboard_public.html', context)
