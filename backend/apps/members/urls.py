@@ -9,4 +9,5 @@ app_name = "members"
 urlpatterns = [
     path("", views.MemberLeaderboardView.as_view(), name="member-list"),
     path("<int:pk>/", views.MemberDetailView.as_view(), name="member-detail"),
+    path("public/", views.LeaderboardHTMLView.as_view(), name="leaderboard-public"),
 ]
