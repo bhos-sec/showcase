@@ -16,11 +16,12 @@ class BadgeSerializer(serializers.ModelSerializer):
     Fields:
         name: Badge display name (e.g. "Architect").
         icon_name: Frontend icon identifier.
+        description: Optional explanation of the badge.
     """
 
     class Meta:
         model = Badge
-        fields = ["name", "icon_name"]
+        fields = ["name", "icon_name", "description"]
 
 
 class MemberBadgeSerializer(serializers.ModelSerializer):

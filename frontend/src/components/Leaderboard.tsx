@@ -1,16 +1,8 @@
-import {
-  Trophy,
-  Github,
-  Star,
-  Shield,
-  Award,
-  Zap,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Trophy, Github, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { useMembers } from "../hooks";
 import { MEMBERS_PER_PAGE, TIER_COLORS } from "../constants";
+import { BadgeList } from "./Badge";
 
 const TIER_BAR_COLORS = {
   Founder: "rgb(192, 132, 250)", // purple-400
@@ -199,29 +191,7 @@ export function Leaderboard() {
                           </div>
                         </td>
                         <td className="p-3 md:p-4 hidden lg:table-cell user-select-none">
-                          <div className="flex flex-wrap gap-1 md:gap-2">
-                            {member.badges.map((badge) => (
-                              <span
-                                key={badge}
-                                className="flex items-center gap-1 px-1 py-0.5 md:px-1.5 md:py-0.5 text-[8px] md:text-[9px] uppercase tracking-widest font-mono border border-border bg-background text-muted-foreground whitespace-nowrap"
-                                title={badge}
-                              >
-                                {badge === "Architect" && (
-                                  <Shield className="w-2 h-2 md:w-2.5 md:h-2.5 text-purple-400" />
-                                )}
-                                {badge === "Visionary" && (
-                                  <Star className="w-2 h-2 md:w-2.5 md:h-2.5 text-amber-400" />
-                                )}
-                                {badge === "Reviewer" && (
-                                  <Award className="w-2 h-2 md:w-2.5 md:h-2.5 text-blue-400" />
-                                )}
-                                {badge === "Optimizer" && (
-                                  <Zap className="w-2 h-2 md:w-2.5 md:h-2.5 text-accent" />
-                                )}
-                                {badge}
-                              </span>
-                            ))}
-                          </div>
+                          <BadgeList badges={member.badges} />
                         </td>
                       </tr>
                     );
