@@ -7,6 +7,7 @@
 import { useEffect, useState } from "react";
 import { fetchMembers } from "../services/memberService";
 import type { Member, ApiError } from "../types/api";
+import { MEMBERS_PER_PAGE } from "../constants";
 
 interface UseMembersState {
   members: Member[];
@@ -21,13 +22,13 @@ interface UseMembersState {
  * Hook for fetching and managing members/leaderboard.
  *
  * @param page - Current page number
- * @param pageSize - Items per page (default 25 matches backend)
+ * @param pageSize - Items per page (default matches backend PAGE_SIZE)
  * @param tier - Optional tier filter
  * @returns State object with members and loading/error info
  */
 export function useMembers(
   page: number = 1,
-  pageSize: number = 25,
+  pageSize: number = MEMBERS_PER_PAGE,
   tier?: string
 ): UseMembersState {
   const [state, setState] = useState<UseMembersState>({

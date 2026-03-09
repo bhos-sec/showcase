@@ -19,8 +19,10 @@ function Counter({ value }: { value: number | string }) {
 
 export function Leaderboard() {
   const [currentPage, setCurrentPage] = useState(1);
-  const { members, loading, error, totalCount, hasNextPage } =
-    useMembers(currentPage);
+  const { members, loading, error, totalCount, hasNextPage } = useMembers(
+    currentPage,
+    MEMBERS_PER_PAGE
+  );
 
   const totalPages = totalCount ? Math.ceil(totalCount / MEMBERS_PER_PAGE) : 1;
   const startIndex = (currentPage - 1) * MEMBERS_PER_PAGE;

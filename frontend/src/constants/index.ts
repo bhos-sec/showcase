@@ -5,7 +5,7 @@
  */
 
 export const PROJECTS_PER_PAGE = 25;
-export const MEMBERS_PER_PAGE = 25;
+export const MEMBERS_PER_PAGE = 10;
 export const INITIAL_PROJECTS_SHOWN = 3;
 
 export const TIER_COLORS = {
