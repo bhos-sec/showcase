@@ -48,10 +48,6 @@ make sync
 Visit `http://localhost:3000` for the frontend leaderboard.  
 Admin panel: `http://localhost:8000/admin` (create superuser: `make superuser`)
 
-## 🏆 Leaderboard
-
-![Collective Leaderboard](https://sec.bhos.tech/api/members/leaderboard-image/?top=20)
-
 ## Scoring Algorithm
 
 ```

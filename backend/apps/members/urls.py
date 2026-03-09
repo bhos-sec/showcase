@@ -11,5 +11,9 @@ urlpatterns = [
     path("<int:pk>/", views.MemberDetailView.as_view(), name="member-detail"),
     # path("public/", views.LeaderboardHTMLView.as_view(), name="leaderboard-public"),
     # path("leaderboard-table/", views.LeaderboardTableView.as_view(), name="leaderboard-table"),
-    path("leaderboard-image/", views.LeaderboardImageView.as_view(), name="leaderboard-image"),
+    path(
+        "leaderboard-image/",
+        views.LeaderboardImageView.as_view(),
+        name="leaderboard-image",
+    ),
 ]

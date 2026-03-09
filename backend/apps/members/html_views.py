@@ -21,14 +21,16 @@ class LeaderboardHTMLView(ListAPIView):
 
     def get_queryset(self):
         """Return active members with prefetched badge relations."""
-        return Member.objects.filter(is_active=True).prefetch_related(
-            "member_badges__badge"
-        ).order_by("-score")
+        return (
+            Member.objects.filter(is_active=True)
+            .prefetch_related("member_badges__badge")
+            .order_by("-score")
+        )
 
     def get(self, request, *args, **kwargs):
         """Override to return HTML instead of JSON."""
-        top = int(request.query_params.get('top', 10))
-        format_type = request.query_params.get('format', 'html')
+        top = int(request.query_params.get("top", 10))
+        format_type = request.query_params.get("format", "html")
 
         # Limit to max 100
         top = min(top, 100)
@@ -38,12 +40,12 @@ class LeaderboardHTMLView(ListAPIView):
         members_data = serializer.data
 
         context = {
-            'members': members_data,
-            'top': top,
-            'total_count': self.get_queryset().count(),
+            "members": members_data,
+            "top": top,
+            "total_count": self.get_queryset().count(),
         }
 
-        if format_type == 'table':
-            return render(request, 'leaderboard_table.html', context)
+        if format_type == "table":
+            return render(request, "leaderboard_table.html", context)
 
-        return render(request, 'leaderboard_html.html', context)
+        return render(request, "leaderboard_html.html", context)

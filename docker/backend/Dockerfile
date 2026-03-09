@@ -47,8 +47,9 @@ RUN apt-get update && \
 COPY backend/requirements/ /app/requirements/
 RUN pip install --no-cache-dir -r requirements/local.txt
 
-# Install Playwright browser binaries.
-RUN playwright install chromium
+# Install Playwright browser binaries and dependencies.
+RUN playwright install chromium && \
+    playwright install-deps chromium
 
 # Copy application code.
 COPY backend/ /app/

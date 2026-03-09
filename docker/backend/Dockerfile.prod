@@ -62,8 +62,12 @@ RUN apt-get update && \
 # Copy installed Python packages from builder.
 COPY --from=builder /install /usr/local
 
-# Install Playwright browser binaries.
-RUN playwright install chromium
+# Set environment variable for Playwright cache
+ENV PLAYWRIGHT_BROWSERS_PATH=/app/.playwright
+
+# Install Playwright browser binaries (as root before switching user).
+RUN mkdir -p /app/.playwright && \
+    playwright install --with-deps chromium
 
 # Copy application code.
 COPY backend/ /app/
@@ -74,7 +78,8 @@ RUN mkdir -p /data /app/staticfiles /app/logs && \
     adduser --system --ingroup django django && \
     chown -R django:django /app /data /app/logs /app/staticfiles && \
     chmod -R 755 /app/logs && \
-    chmod -R 755 /app/staticfiles
+    chmod -R 755 /app/staticfiles && \
+    chmod -R 755 /app/.playwright
 
 USER django
 
