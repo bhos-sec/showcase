@@ -133,3 +133,6 @@ dmypy.json
 # Media and static files
 media/
 staticfiles/
+
+# Ruff
+.ruff_cache
