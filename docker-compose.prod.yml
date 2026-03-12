@@ -33,6 +33,7 @@ services:
   # Django backend — Gunicorn production server
   # ---------------------------------------------------------------------------
   backend:
+    image: ghcr.io/bhos-sec/showcase/backend:latest
     build:
       context: .
       dockerfile: docker/backend/Dockerfile.prod
@@ -55,6 +56,7 @@ services:
   # Celery worker — background task processing
   # ---------------------------------------------------------------------------
   celery-worker:
+    image: ghcr.io/bhos-sec/showcase/backend:latest
     build:
       context: .
       dockerfile: docker/backend/Dockerfile.prod
@@ -79,6 +81,7 @@ services:
   # Celery Beat — periodic task scheduler
   # ---------------------------------------------------------------------------
   celery-beat:
+    image: ghcr.io/bhos-sec/showcase/backend:latest
     build:
       context: .
       dockerfile: docker/backend/Dockerfile.prod
@@ -103,6 +106,7 @@ services:
   # Nginx — reverse proxy + static file server
   # ---------------------------------------------------------------------------
   nginx:
+    image: ghcr.io/bhos-sec/showcase/frontend:latest
     build:
       context: .
       dockerfile: docker/frontend/Dockerfile

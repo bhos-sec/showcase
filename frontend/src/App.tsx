@@ -64,7 +64,7 @@ export default function App() {
             <span className="font-mono text-[10px] sm:text-xs text-muted-foreground select-none">
               ×
             </span>
-            <Logo className="h-5 sm:h-7 w-auto opacity-90 hover:opacity-100 transition-opacity select-none" />
+            <Logo className="h-4 sm:h-6 w-auto opacity-90 hover:opacity-100 transition-opacity select-none" />
           </div>
           <nav className="flex items-center gap-0 sm:gap-1">
             <a
