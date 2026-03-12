@@ -59,9 +59,6 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Deploy to VPS
         uses: appleboy/ssh-action@master
         with:
@@ -126,11 +123,7 @@ jobs:
 
             # Deploy with zero downtime
             echo "🔄 Redeploying containers..."
-            docker compose -f docker-compose.prod.yml --env-file .env.production up -d --scale celery-worker=0 --scale celery-beat=0 --build
-
-            # Wait for backend to be ready
-            echo "⏳ Waiting for backend service..."
-            sleep 10
+            docker compose -f docker-compose.prod.yml --env-file .env.production up -d --remove-orphans
 
             # Run migrations
             echo "🗄️  Running migrations..."
@@ -143,10 +136,6 @@ jobs:
             # Collect static files
             echo "📂 Collecting static files..."
             docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend python manage.py collectstatic --noinput
-
-            # Restart Celery services
-            echo "🔄 Starting Celery services..."
-            docker compose -f docker-compose.prod.yml --env-file .env.production up -d celery-worker celery-beat
 
             # Wait for backend workers to fully initialize
             echo "⏳ Waiting for backend to initialize..."
