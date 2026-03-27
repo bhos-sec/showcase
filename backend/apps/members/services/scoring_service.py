@@ -16,9 +16,12 @@ Architecture:
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+from datetime import time
 import logging
 from abc import ABC, abstractmethod
 from decimal import Decimal
+from time import time, timezone
 
 from django.db.models import Sum
 
@@ -212,6 +215,29 @@ class ScoringService:
 
     def __init__(self, strategy: ScoringStrategy | None = None) -> None:
         self._strategy = strategy or ComprehensiveScoringStrategy()
+
+    @staticmethod
+    def _as_start_of_day(day):
+        tz = timezone.get_current_timezone()
+        return timezone.make_aware(datetime.combine(day, time.min), tz)
+    def _last_week_range(self):
+        today = timezone.localdate()
+        this_week_start = today - timedelta(days=today.weekday())   # Monday
+        last_week_start = this_week_start - timedelta(days=7)
+        return (
+            self._as_start_of_day(last_week_start),  # inclusive
+            self._as_start_of_day(this_week_start),  # exclusive
+        )
+
+    def _last_month_range(self):
+        today = timezone.localdate()
+        this_month_start = today.replace(day=1)
+        last_month_end = this_month_start
+        last_month_start = (this_month_start - timedelta(days=1)).replace(day=1)
+        return (
+            self._as_start_of_day(last_month_start),  # inclusive
+            self._as_start_of_day(last_month_end),    # exclusive
+        )
 
     def calculate_score(self, member: Member) -> Decimal:
         """Calculate the merit score for a single member.

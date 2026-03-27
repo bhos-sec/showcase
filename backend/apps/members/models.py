@@ -111,12 +111,34 @@ class Member(TimeStampedModel):
     )
 
     # Cached metrics — recomputed by the scoring service.
+    #Weekly/Monthly/Total Scores
     score = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,
         db_index=True,
         help_text="Weighted merit score (cached, recomputed periodically).",
+    )
+    monthly_score=models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Monthly weighted merit score (cached, recomputed periodically).",
+    )
+    weekly_score=models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Weekly weighted merit score (cached, recomputed periodically).",
+    )
+    #Weekly/Monthly/Total Contribution Counts
+    weekly_contribution_count=models.PositiveIntegerField(
+        default=0,
+        help_text="Total contributions in last week (cached).",
+    )
+    monthly_score=models.PositiveIntegerField(
+        default=0,
+        help_text="Total contributions in last month (cached).",
     )
     contributions_count = models.PositiveIntegerField(
         default=0,
