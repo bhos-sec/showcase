@@ -224,7 +224,7 @@ export function Leaderboard() {
                     const displayedImpact = getImpactByMode(member, mode);
                     const displayedAdditions = getAdditionsByMode(member, mode);
                     const displayedDeletions = getDeletionsByMode(member, mode);
-                    
+
                     return (
                       <tr
                         key={member.id}
