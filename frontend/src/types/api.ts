@@ -46,9 +46,15 @@ export interface Member {
   contributions: number;
   monthly_contribution_count: number;
   weekly_contribution_count: number;
-  impact: number; // 0-100 percentile
+  impact: number; // Overall percentile
+  weekly_impact: number;
+  monthly_impact: number;
   additions: number; // Total lines added
+  weekly_additions: number;
+  monthly_additions: number;
   deletions: number; // Total lines deleted
+  weekly_deletions: number;
+  monthly_deletions: number;
   badges: string[];
   avatar: string;
 }

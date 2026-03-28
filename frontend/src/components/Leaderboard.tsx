@@ -44,6 +44,36 @@ function getContributionsByMode(member: Member, mode: LeaderboardMode): number {
   return member.contributions ?? 0;
 }
 
+function getImpactByMode(member: Member, mode: LeaderboardMode): number {
+  if (mode === "weekly") {
+    return member.weekly_impact ?? 0;
+  }
+  if (mode === "monthly") {
+    return member.monthly_impact ?? 0;
+  }
+  return member.impact ?? 0;
+}
+
+function getAdditionsByMode(member: Member, mode: LeaderboardMode): number {
+  if (mode === "weekly") {
+    return member.weekly_additions ?? 0;
+  }
+  if (mode === "monthly") {
+    return member.monthly_additions ?? 0;
+  }
+  return member.additions ?? 0;
+}
+
+function getDeletionsByMode(member: Member, mode: LeaderboardMode): number {
+  if (mode === "weekly") {
+    return member.weekly_deletions ?? 0;
+  }
+  if (mode === "monthly") {
+    return member.monthly_deletions ?? 0;
+  }
+  return member.deletions ?? 0;
+}
+
 export function Leaderboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [mode, setMode] = useState<LeaderboardMode>("total");
@@ -191,6 +221,10 @@ export function Leaderboard() {
                       member,
                       mode
                     );
+                    const displayedImpact = getImpactByMode(member, mode);
+                    const displayedAdditions = getAdditionsByMode(member, mode);
+                    const displayedDeletions = getDeletionsByMode(member, mode);
+                    
                     return (
                       <tr
                         key={member.id}
@@ -251,7 +285,7 @@ export function Leaderboard() {
                               <div
                                 className="h-full"
                                 style={{
-                                  width: `${member.impact}%`,
+                                  width: `${displayedImpact}%`,
                                   backgroundColor:
                                     TIER_BAR_COLORS[
                                       member.tier as keyof typeof TIER_BAR_COLORS
@@ -260,17 +294,17 @@ export function Leaderboard() {
                               />
                             </div>
                             <span className="text-[9px] md:text-[10px] font-mono text-muted-foreground w-8">
-                              {member.impact}%
+                              {displayedImpact}%
                             </span>
                           </div>
                         </td>
                         <td className="p-3 md:p-4 hidden lg:table-cell user-select-none border-r border-dashed border-border-dashed">
                           <div className="flex items-center gap-2 md:gap-3 text-[9px] md:text-[10px] font-mono">
                             <span className="text-accent">
-                              +{member.additions.toLocaleString()}
+                              +{displayedAdditions.toLocaleString()}
                             </span>
                             <span className="text-red-400">
-                              -{member.deletions.toLocaleString()}
+                              -{displayedDeletions.toLocaleString()}
                             </span>
                           </div>
                         </td>

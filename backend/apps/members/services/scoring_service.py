@@ -293,6 +293,8 @@ class ScoringService:
 
         return {
             "contributions_count": contribution_count,
+            "additions": additions,
+            "deletions": deletions,
             "score": contribution_score
             + additions_score
             + deletions_score
@@ -396,6 +398,8 @@ class ScoringService:
             )
             member.weekly_contribution_count = weekly_metrics["contributions_count"]
             member.weekly_score = weekly_metrics["score"]
+            member.weekly_additions = weekly_metrics["additions"]
+            member.weekly_deletions = weekly_metrics["deletions"]
 
             monthly_metrics = self._period_member_metrics(
                 member=member,
@@ -404,10 +408,14 @@ class ScoringService:
             )
             member.monthly_contribution_count = monthly_metrics["contributions_count"]
             member.monthly_score = monthly_metrics["score"]
+            member.monthly_additions = monthly_metrics["additions"]
+            member.monthly_deletions = monthly_metrics["deletions"]
 
         # Phase 2: Calculate impact (needs up-to-date scores).
         # Calculate each member's percentage of total score distribution.
         total_score = sum(m.score for m in members)
+        weekly_total_score = sum(m.weekly_score for m in members)
+        monthly_total_score = sum(m.monthly_score for m in members)
 
         for member in members:
             if total_score == 0:
@@ -415,6 +423,18 @@ class ScoringService:
             else:
                 member_percentage = (member.score / total_score) * 100
                 member.impact = min(int(member_percentage), 100)
+
+            if weekly_total_score == 0:
+                member.weekly_impact = 0
+            else:
+                weekly_percentage = (member.weekly_score / weekly_total_score) * 100
+                member.weekly_impact = min(int(weekly_percentage), 100)
+
+            if monthly_total_score == 0:
+                member.monthly_impact = 0
+            else:
+                monthly_percentage = (member.monthly_score / monthly_total_score) * 100
+                member.monthly_impact = min(int(monthly_percentage), 100)
 
         # Phase 3: Bulk update.
         Member.objects.bulk_update(
@@ -427,8 +447,14 @@ class ScoringService:
                 "weekly_contribution_count",
                 "monthly_contribution_count",
                 "impact",
+                "weekly_impact",
+                "monthly_impact",
                 "additions",
                 "deletions",
+                "weekly_additions",
+                "weekly_deletions",
+                "monthly_additions",
+                "monthly_deletions",
             ],
             batch_size=100,
         )
