@@ -21,7 +21,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import httpx
 from django.conf import settings
@@ -93,6 +93,74 @@ class GitHubProfileService:
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _safe_int(value: int | float | str | None) -> int:
+        """Safely cast numeric-like values to int."""
+        try:
+            return int(value or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    def _build_commit_windows(
+        self,
+        weeks: list[dict],
+        total_commits_hint: int = 0,
+    ) -> dict[str, int]:
+        """Aggregate total/weekly/monthly commit and line metrics from stats weeks.
+
+        Weekly/monthly windows are calendar-boundary based in UTC:
+        - weekly: from start of current week
+        - monthly: from start of current month
+
+        Values are recomputed on each sync, so they naturally reset when a new
+        week or month starts.
+        """
+        now = datetime.now(tz=timezone.utc)
+        start_of_week = (now - timedelta(days=now.weekday())).replace(
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+        )
+        start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        weekly_cutoff = int(start_of_week.timestamp())
+        monthly_cutoff = int(start_of_month.timestamp())
+    
+        total_commits = self._safe_int(total_commits_hint)
+        if total_commits <= 0:
+            total_commits = sum(self._safe_int(w.get("c")) for w in weeks)
+
+        total_additions = sum(self._safe_int(w.get("a")) for w in weeks)
+        total_deletions = sum(self._safe_int(w.get("d")) for w in weeks)
+
+        weekly_entries = [
+            w for w in weeks if self._safe_int(w.get("w")) >= weekly_cutoff
+        ]
+        monthly_entries = [
+            w for w in weeks if self._safe_int(w.get("w")) >= monthly_cutoff
+        ]
+
+        weekly_commits = sum(self._safe_int(w.get("c")) for w in weekly_entries)
+        weekly_additions = sum(self._safe_int(w.get("a")) for w in weekly_entries)
+        weekly_deletions = sum(self._safe_int(w.get("d")) for w in weekly_entries)
+
+        monthly_commits = sum(self._safe_int(w.get("c")) for w in monthly_entries)
+        monthly_additions = sum(self._safe_int(w.get("a")) for w in monthly_entries)
+        monthly_deletions = sum(self._safe_int(w.get("d")) for w in monthly_entries)
+
+        return {
+            "total_commits": total_commits,
+            "total_additions": total_additions,
+            "total_deletions": total_deletions,
+            "weekly_commits": weekly_commits,
+            "weekly_additions": weekly_additions,
+            "weekly_deletions": weekly_deletions,
+            "monthly_commits": monthly_commits,
+            "monthly_additions": monthly_additions,
+            "monthly_deletions": monthly_deletions,
+        }
 
     def _rest_headers(self) -> dict[str, str]:
         """Build HTTP headers for REST API requests.
@@ -604,23 +672,29 @@ class GitHubProfileService:
                 if not member:
                     continue
 
-                total_commits = contributor.get("total", 0)
+                weeks = contributor.get("weeks", [])
+                window_stats = self._build_commit_windows(
+                    weeks=weeks,
+                    total_commits_hint=contributor.get("total", 0),
+                )
+
+                total_commits = window_stats["total_commits"]
                 if total_commits == 0:
                     continue
-
-                # Sum weekly additions/deletions from the stats endpoint.
-                # These match exactly what GitHub shows in the Contributors
-                # graph — one call per repo covers all contributors.
-                weeks = contributor.get("weeks", [])
-                total_additions = sum(w.get("a", 0) for w in weeks)
-                total_deletions = sum(w.get("d", 0) for w in weeks)
 
                 _, created = ContributionFactory.create_or_update_from_repo_stats(
                     member=member,
                     repo_name=repo_name,
                     total_commits=total_commits,
-                    total_additions=total_additions,
-                    total_deletions=total_deletions,
+                    total_additions=window_stats["total_additions"],
+                    total_deletions=window_stats["total_deletions"],
+                    weekly_commits=window_stats["weekly_commits"],
+                    weekly_additions=window_stats["weekly_additions"],
+                    weekly_deletions=window_stats["weekly_deletions"],
+                    monthly_commits=window_stats["monthly_commits"],
+                    monthly_additions=window_stats["monthly_additions"],
+                    monthly_deletions=window_stats["monthly_deletions"],
+
                 )
                 if created:
                     created_total += 1

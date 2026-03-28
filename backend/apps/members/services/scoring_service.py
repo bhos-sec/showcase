@@ -16,14 +16,13 @@ Architecture:
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from datetime import time
+from datetime import datetime, time, timedelta
 import logging
 from abc import ABC, abstractmethod
 from decimal import Decimal
-from time import time, timezone
 
 from django.db.models import Sum
+from django.utils import timezone
 
 from apps.members.models import Contribution, ContributionType, Member, ScoringWeight
 
@@ -220,24 +219,77 @@ class ScoringService:
     def _as_start_of_day(day):
         tz = timezone.get_current_timezone()
         return timezone.make_aware(datetime.combine(day, time.min), tz)
-    def _last_week_range(self):
-        today = timezone.localdate()
-        this_week_start = today - timedelta(days=today.weekday())   # Monday
-        last_week_start = this_week_start - timedelta(days=7)
-        return (
-            self._as_start_of_day(last_week_start),  # inclusive
-            self._as_start_of_day(this_week_start),  # exclusive
-        )
 
-    def _last_month_range(self):
+    def _current_week_start(self):
+        today = timezone.localdate()
+        this_week_start = today - timedelta(days=today.weekday())
+        return self._as_start_of_day(this_week_start)
+
+    def _current_month_start(self):
         today = timezone.localdate()
         this_month_start = today.replace(day=1)
-        last_month_end = this_month_start
-        last_month_start = (this_month_start - timedelta(days=1)).replace(day=1)
-        return (
-            self._as_start_of_day(last_month_start),  # inclusive
-            self._as_start_of_day(last_month_end),    # exclusive
+        return self._as_start_of_day(this_month_start)
+
+    def _period_member_metrics(
+        self,
+        member: Member,
+        period: str,
+        period_start: datetime,
+    ) -> dict[str, int | Decimal]:
+        """Compute period-specific score and counters for a member."""
+        if period == "weekly":
+            commit_count_field = "weekly_commits"
+            commit_additions_field = "weekly_additions"
+            commit_deletions_field = "weekly_deletions"
+        else:
+            commit_count_field = "monthly_commits"
+            commit_additions_field = "monthly_additions"
+            commit_deletions_field = "monthly_deletions"
+
+        non_commit_qs = Contribution.objects.filter(member=member).exclude(
+            contribution_type=ContributionType.COMMIT
         )
+        non_commit_qs = non_commit_qs.filter(occurred_at__gte=period_start)
+
+        non_commit_count = non_commit_qs.count()
+        non_commit_line_stats = non_commit_qs.aggregate(
+            total_additions=Sum("additions", default=0),
+            total_deletions=Sum("deletions", default=0),
+        )
+
+        commit_qs = Contribution.objects.filter(
+            member=member,
+            contribution_type=ContributionType.COMMIT,
+        )
+        commit_stats = commit_qs.aggregate(
+            total_commits=Sum(commit_count_field, default=0),
+            total_additions=Sum(commit_additions_field, default=0),
+            total_deletions=Sum(commit_deletions_field, default=0),
+        )
+
+        issue_count = non_commit_qs.filter(
+            contribution_type=ContributionType.ISSUE_CLOSED
+        ).count()
+
+        contribution_count = non_commit_count + (commit_stats["total_commits"] or 0)
+        additions = (non_commit_line_stats["total_additions"] or 0) + (
+            commit_stats["total_additions"] or 0
+        )
+        deletions = (non_commit_line_stats["total_deletions"] or 0) + (
+            commit_stats["total_deletions"] or 0
+        )
+
+        contribution_score = (
+            Decimal(contribution_count) * ComprehensiveScoringStrategy.CONTRIBUTION_WEIGHT
+        )
+        additions_score = Decimal(additions) * ComprehensiveScoringStrategy.ADDITIONS_WEIGHT
+        deletions_score = Decimal(deletions) * ComprehensiveScoringStrategy.DELETIONS_WEIGHT
+        issue_score = Decimal(issue_count) * ComprehensiveScoringStrategy.ISSUE_WEIGHT
+
+        return {
+            "contributions_count": contribution_count,
+            "score": contribution_score + additions_score + deletions_score + issue_score,
+        }
 
     def calculate_score(self, member: Member) -> Decimal:
         """Calculate the merit score for a single member.
@@ -286,6 +338,9 @@ class ScoringService:
         if not members:
             return 0
 
+        weekly_start = self._current_week_start()
+        monthly_start = self._current_month_start()
+
         # Phase 1: Calculate scores, contribution counts, and line changes.
         for member in members:
             member.score = self.calculate_score(member)
@@ -326,6 +381,22 @@ class ScoringService:
             member.additions = line_stats["total_additions"] or 0
             member.deletions = line_stats["total_deletions"] or 0
 
+            weekly_metrics = self._period_member_metrics(
+                member=member,
+                period="weekly",
+                period_start=weekly_start,
+            )
+            member.weekly_contribution_count = weekly_metrics["contributions_count"]
+            member.weekly_score = weekly_metrics["score"]
+
+            monthly_metrics = self._period_member_metrics(
+                member=member,
+                period="monthly",
+                period_start=monthly_start,
+            )
+            member.monthly_contribution_count = monthly_metrics["contributions_count"]
+            member.monthly_score = monthly_metrics["score"]
+
         # Phase 2: Calculate impact (needs up-to-date scores).
         # Calculate each member's percentage of total score distribution.
         total_score = sum(m.score for m in members)
@@ -340,7 +411,17 @@ class ScoringService:
         # Phase 3: Bulk update.
         Member.objects.bulk_update(
             members,
-            fields=["score", "contributions_count", "impact", "additions", "deletions"],
+            fields=[
+                "score",
+                "weekly_score",
+                "monthly_score",
+                "contributions_count",
+                "weekly_contribution_count",
+                "monthly_contribution_count",
+                "impact",
+                "additions",
+                "deletions",
+            ],
             batch_size=100,
         )
 
