@@ -5,6 +5,7 @@ A **Meritocracy Engine** for tracking and ranking team contributions with a live
 ## Features
 
 - 🏆 **Live Leaderboard** — Real-time ranking by merit score
+- 📅 **Time-Based Filtering** — Filter leaderboards by weekly, monthly, or total metrics
 - 📊 **Comprehensive Metrics** — Tracks contributions, lines added/deleted, issues, and more
 - 🎯 **Merit-Based Scoring** — Transparent algorithm factors in contributions (↑5pts), code changes (↑0.01pts/line), and issues (↑3pts)
 - 👥 **Tiered Leadership** — Founder, Lead, Mentor, Member, Learner roles

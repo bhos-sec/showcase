@@ -40,8 +40,12 @@ export interface Member {
   name: string;
   tier: "Founder" | "Lead" | "Mentor" | "Member" | "Learner";
   score: string; // Decimal from Django
+  monthly_score: string; // Decimal from Django
+  weekly_score: string; // Decimal from Django
   github: string;
   contributions: number;
+  monthly_contribution_count: number;
+  weekly_contribution_count: number;
   impact: number; // 0-100 percentile
   additions: number; // Total lines added
   deletions: number; // Total lines deleted

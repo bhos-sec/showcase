@@ -87,6 +87,21 @@ class ContributionFactory:
         return parse_datetime(dt_string)
 
     @classmethod
+    def _contribution_field_names(cls) -> set[str]:
+        """Return concrete field names available on the Contribution model."""
+        return {field.name for field in Contribution._meta.concrete_fields}
+
+    @classmethod
+    def _period_metric_fields(cls, metrics: dict[str, object]) -> dict[str, object]:
+        """Keep only period metric fields that exist on the model.
+
+        This keeps the factory backward-compatible today and ready for future
+        weekly/monthly schema extensions used by filtering.
+        """
+        available = cls._contribution_field_names()
+        return {k: v for k, v in metrics.items() if k in available}
+
+    @classmethod
     def create_from_pull_request(
         cls,
         member: Member,
@@ -147,6 +162,12 @@ class ContributionFactory:
         total_commits: int,
         total_additions: int = 0,
         total_deletions: int = 0,
+        weekly_commits: int = 0,
+        weekly_additions: int = 0,
+        weekly_deletions: int = 0,
+        monthly_commits: int = 0,
+        monthly_additions: int = 0,
+        monthly_deletions: int = 0,
         repository: Project | None = None,
     ) -> tuple[Contribution, bool]:
         """Create or update a single aggregated commit record for a repo.
@@ -173,6 +194,12 @@ class ContributionFactory:
             total_commits: Total commits by this member in the repo.
             total_additions: Lines added (weekly stats total).
             total_deletions: Lines deleted (weekly stats total).
+            weekly_commits: Commits in the current calendar week.
+            weekly_additions: Line additions in the current calendar week.
+            weekly_deletions: Line deletions in the current calendar week.
+            monthly_commits: Commits in the current calendar month.
+            monthly_additions: Line additions in the current calendar month.
+            monthly_deletions: Line deletions in the current calendar month.
             repository: Optional explicit Project link.
 
         Returns:
@@ -185,6 +212,21 @@ class ContributionFactory:
             repository = cls._resolve_repository(repo_name)
 
         points = weight * total_commits
+        weekly_points = weight * weekly_commits
+        monthly_points = weight * monthly_commits
+
+        period_metrics = cls._period_metric_fields(
+            {
+                "weekly_commits": weekly_commits,
+                "monthly_commits": monthly_commits,
+                "weekly_additions": weekly_additions,
+                "weekly_deletions": weekly_deletions,
+                "monthly_additions": monthly_additions,
+                "monthly_deletions": monthly_deletions,
+                "weekly_points": weekly_points,
+                "monthly_points": monthly_points,
+            }
+        )
 
         contribution, created = Contribution.objects.get_or_create(
             github_id=github_id,
@@ -198,6 +240,7 @@ class ContributionFactory:
                 "additions": total_additions,
                 "deletions": total_deletions,
                 "occurred_at": dj_timezone.now(),
+                **period_metrics,
             },
         )
 
@@ -205,9 +248,12 @@ class ContributionFactory:
             contribution.points = points
             contribution.additions = total_additions
             contribution.deletions = total_deletions
-            contribution.save(
-                update_fields=["points", "additions", "deletions", "updated_at"]
-            )
+            for field_name, value in period_metrics.items():
+                setattr(contribution, field_name, value)
+
+            update_fields = ["points", "additions", "deletions", "updated_at"]
+            update_fields.extend(period_metrics.keys())
+            contribution.save(update_fields=update_fields)
 
         return contribution, created
 
@@ -238,6 +284,18 @@ class ContributionFactory:
 
         additions = review_data.get("additions", 0)
         deletions = review_data.get("deletions", 0)
+        weekly_additions = review_data.get("weekly_additions", 0)
+        weekly_deletions = review_data.get("weekly_deletions", 0)
+        monthly_additions = review_data.get("monthly_additions", 0)
+        monthly_deletions = review_data.get("monthly_deletions", 0)
+        period_metrics = cls._period_metric_fields(
+            {
+                "weekly_additions": weekly_additions,
+                "weekly_deletions": weekly_deletions,
+                "monthly_additions": monthly_additions,
+                "monthly_deletions": monthly_deletions,
+            }
+        )
 
         contribution, created = Contribution.objects.get_or_create(
             github_id=github_id,
@@ -251,6 +309,7 @@ class ContributionFactory:
                 "additions": additions,
                 "deletions": deletions,
                 "occurred_at": occurred_at,
+                **period_metrics,
             },
         )
 
@@ -262,7 +321,12 @@ class ContributionFactory:
             ):
                 contribution.additions = additions
                 contribution.deletions = deletions
-                contribution.save(update_fields=["additions", "deletions"])
+                for field_name, value in period_metrics.items():
+                    setattr(contribution, field_name, value)
+
+                update_fields = ["additions", "deletions"]
+                update_fields.extend(period_metrics.keys())
+                contribution.save(update_fields=update_fields)
 
         return contribution, created
 

@@ -92,6 +92,10 @@ class Member(TimeStampedModel):
         avatar_url: URL to the member's GitHub avatar.
         tier: Admin-assigned leadership tier.
         score: Cached weighted merit score.
+        monthly_score: Cached weighted merit score for the current month.
+        weekly_score: Cached weighted merit score for the current week.
+        weekly_contribution_count: Cached contributions in the last week.
+        monthly_contribution_count: Cached contributions in the last month.
         contributions_count: Cached total contribution count.
         impact: Cached percentile rank (0–100) among active members.
         badges: Earned badges via MemberBadge through-model.
@@ -111,12 +115,34 @@ class Member(TimeStampedModel):
     )
 
     # Cached metrics — recomputed by the scoring service.
+    # Weekly/Monthly/Total Scores
     score = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,
         db_index=True,
         help_text="Weighted merit score (cached, recomputed periodically).",
+    )
+    monthly_score = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Monthly weighted merit score (cached, recomputed periodically).",
+    )
+    weekly_score = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Weekly weighted merit score (cached, recomputed periodically).",
+    )
+    # Weekly/Monthly/Total Contribution Counts
+    weekly_contribution_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Total contributions in last week (cached).",
+    )
+    monthly_contribution_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Total contributions in last month (cached).",
     )
     contributions_count = models.PositiveIntegerField(
         default=0,
@@ -235,6 +261,14 @@ class Contribution(TimeStampedModel):
         points: Computed point value based on the scoring weight.
         additions: Lines of code added in this contribution.
         deletions: Lines of code deleted in this contribution.
+        weekly_commits: Commit count in the current calendar week.
+        monthly_commits: Commit count in the current calendar month.
+        weekly_points: Weighted points in the current calendar week.
+        monthly_points: Weighted points in the current calendar month.
+        weekly_additions: Lines added in the current calendar week.
+        weekly_deletions: Lines deleted in the current calendar week.
+        monthly_additions: Lines added in the current calendar month.
+        monthly_deletions: Lines deleted in the current calendar month.
         occurred_at: When the contribution occurred on GitHub.
     """
 
@@ -277,6 +311,42 @@ class Contribution(TimeStampedModel):
     deletions = models.PositiveIntegerField(
         default=0,
         help_text="Lines of code deleted in this contribution.",
+    )
+    weekly_commits = models.PositiveIntegerField(
+        default=0,
+        help_text="Commit count in the current calendar week.",
+    )
+    monthly_commits = models.PositiveIntegerField(
+        default=0,
+        help_text="Commit count in the current calendar month.",
+    )
+    weekly_points = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=0,
+        help_text="Weighted points in the current calendar week.",
+    )
+    monthly_points = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=0,
+        help_text="Weighted points in the current calendar month.",
+    )
+    weekly_additions = models.PositiveIntegerField(
+        default=0,
+        help_text="Lines added in the current calendar week.",
+    )
+    weekly_deletions = models.PositiveIntegerField(
+        default=0,
+        help_text="Lines deleted in the current calendar week.",
+    )
+    monthly_additions = models.PositiveIntegerField(
+        default=0,
+        help_text="Lines added in the current calendar month.",
+    )
+    monthly_deletions = models.PositiveIntegerField(
+        default=0,
+        help_text="Lines deleted in the current calendar month.",
     )
     occurred_at = models.DateTimeField(
         help_text="When this contribution occurred on GitHub.",
