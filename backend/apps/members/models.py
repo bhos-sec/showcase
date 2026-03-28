@@ -152,6 +152,14 @@ class Member(TimeStampedModel):
         default=0,
         help_text="Percentile rank among active members, 0–100 (cached).",
     )
+    weekly_impact = models.PositiveIntegerField(
+        default=0,
+        help_text="Percentile rank among active members for the current week (cached).",
+    )
+    monthly_impact = models.PositiveIntegerField(
+        default=0,
+        help_text="Percentile rank among active members for the current month (cached).",
+    )
     additions = models.PositiveIntegerField(
         default=0,
         help_text="Total lines added across all contributions (cached).",
@@ -159,6 +167,22 @@ class Member(TimeStampedModel):
     deletions = models.PositiveIntegerField(
         default=0,
         help_text="Total lines deleted across all contributions (cached).",
+    )
+    weekly_additions = models.PositiveIntegerField(
+        default=0,
+        help_text="Total lines added in the current week (cached).",
+    )
+    weekly_deletions = models.PositiveIntegerField(
+        default=0,
+        help_text="Total lines deleted in the current week (cached).",
+    )
+    monthly_additions = models.PositiveIntegerField(
+        default=0,
+        help_text="Total lines added in the current month (cached).",
+    )
+    monthly_deletions = models.PositiveIntegerField(
+        default=0,
+        help_text="Total lines deleted in the current month (cached).",
     )
 
     # Badges — many-to-many via through model for metadata.
