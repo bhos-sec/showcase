@@ -17,7 +17,11 @@ type LeaderboardMode = "total" | "weekly" | "monthly";
 
 function Counter({ value }: { value: number | string }) {
   const numValue = typeof value === "string" ? parseFloat(value) : value;
-  return <span>{numValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>;
+  return (
+    <span>
+      {numValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+    </span>
+  );
 }
 
 function getScoreByMode(member: Member, mode: LeaderboardMode): number {
@@ -86,28 +90,31 @@ export function Leaderboard() {
           <div className="flex border border-border">
             <button
               onClick={() => setMode("total")}
-              className={`px-2 md:px-3 py-1 text-[9px] md:text-[10px] font-mono uppercase tracking-widest transition-colors cursor-pointer ${mode === "total"
+              className={`px-2 md:px-3 py-1 text-[9px] md:text-[10px] font-mono uppercase tracking-widest transition-colors cursor-pointer ${
+                mode === "total"
                   ? "bg-accent text-accent-foreground"
                   : "text-muted-foreground hover:bg-secondary/40"
-                }`}
+              }`}
             >
               Total
             </button>
             <button
               onClick={() => setMode("weekly")}
-              className={`px-2 md:px-3 py-1 text-[9px] md:text-[10px] font-mono uppercase tracking-widest transition-colors cursor-pointer border-l border-border ${mode === "weekly"
+              className={`px-2 md:px-3 py-1 text-[9px] md:text-[10px] font-mono uppercase tracking-widest transition-colors cursor-pointer border-l border-border ${
+                mode === "weekly"
                   ? "bg-accent text-accent-foreground"
                   : "text-muted-foreground hover:bg-secondary/40"
-                }`}
+              }`}
             >
               Weekly
             </button>
             <button
               onClick={() => setMode("monthly")}
-              className={`px-2 md:px-3 py-1 text-[9px] md:text-[10px] font-mono uppercase tracking-widest transition-colors cursor-pointer border-l border-border ${mode === "monthly"
+              className={`px-2 md:px-3 py-1 text-[9px] md:text-[10px] font-mono uppercase tracking-widest transition-colors cursor-pointer border-l border-border ${
+                mode === "monthly"
                   ? "bg-accent text-accent-foreground"
                   : "text-muted-foreground hover:bg-secondary/40"
-                }`}
+              }`}
             >
               Monthly
             </button>
@@ -150,129 +157,129 @@ export function Leaderboard() {
             <tbody className="divide-y divide-border">
               {loading && members.length === 0
                 ? // Loading skeletons
-                Array.from({ length: MEMBERS_PER_PAGE }).map((_, i) => (
-                  <tr key={i} className="bg-secondary/5 animate-pulse">
-                    <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
-                      <div className="h-5 w-5 md:h-6 md:w-6 bg-secondary mx-auto" />
-                    </td>
-                    <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
-                      <div className="h-3 md:h-4 w-24 md:w-32 bg-secondary" />
-                    </td>
-                    <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
-                      <div className="h-3 md:h-4 w-12 md:w-16 bg-secondary" />
-                    </td>
-                    <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
-                      <div className="h-3 md:h-4 w-16 md:w-20 bg-secondary ml-auto" />
-                    </td>
-                    <td className="p-3 md:p-4 border-r border-dashed border-border-dashed hidden md:table-cell">
-                      <div className="h-3 md:h-4 w-20 md:w-24 bg-secondary" />
-                    </td>
-                    <td className="p-3 md:p-4 border-r border-dashed border-border-dashed hidden lg:table-cell">
-                      <div className="h-3 md:h-4 w-32 md:w-40 bg-secondary" />
-                    </td>
-                    <td className="p-3 md:p-4 hidden lg:table-cell">
-                      <div className="h-3 md:h-4 w-32 md:w-40 bg-secondary" />
-                    </td>
-                  </tr>
-                ))
-                : sortedMembers.map((member, index) => {
-                  const tierStyle =
-                    TIER_COLORS[member.tier as keyof typeof TIER_COLORS];
-                  const globalRank = startIndex + index + 1;
-                  const displayedScore = getScoreByMode(member, mode);
-                  const displayedContributions = getContributionsByMode(
-                    member,
-                    mode
-                  );
-                  return (
-                    <tr
-                      key={member.id}
-                      className="group hover:bg-secondary/20 transition-colors"
-                    >
-                      <td className="p-3 md:p-4 font-mono text-muted-foreground user-select-none border-r border-dashed border-border-dashed text-center">
-                        <div className="text-[10px] md:text-xs">
-                          {globalRank.toString().padStart(2, "0")}
-                        </div>
+                  Array.from({ length: MEMBERS_PER_PAGE }).map((_, i) => (
+                    <tr key={i} className="bg-secondary/5 animate-pulse">
+                      <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
+                        <div className="h-5 w-5 md:h-6 md:w-6 bg-secondary mx-auto" />
                       </td>
                       <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
-                        <a
-                          href={`https://github.com/${member.github}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity"
-                        >
-                          <img
-                            src={member.avatar}
-                            alt={member.name}
-                            className="w-8 h-8 md:w-10 md:h-10 border border-border grayscale group-hover:grayscale-0 transition-all select-none flex-shrink-0"
-                            referrerPolicy="no-referrer"
-                            draggable={false}
-                          />
-                          <div>
-                            <p className="font-bold text-foreground text-xs md:text-sm tracking-tight break-all">
-                              {member.name}
-                            </p>
-                            <div className="flex flex-wrap items-center gap-1 text-[9px] md:text-[10px] font-mono text-muted-foreground mt-0.5 md:mt-1 uppercase tracking-wider">
-                              <Github className="w-2.5 h-2.5 md:w-3 md:h-3" />
-                              <span>{member.github}</span>
-                              <span className="mx-0.5 md:mx-1 text-border-dashed">
-                                /
-                              </span>
-                              <span>
-                                {displayedContributions.toLocaleString()} {" "}
-                                CONTRIB
-                              </span>
-                            </div>
-                          </div>
-                        </a>
+                        <div className="h-3 md:h-4 w-24 md:w-32 bg-secondary" />
                       </td>
                       <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
-                        <span
-                          className={`px-1.5 py-0.5 md:px-2 md:py-1 text-[9px] md:text-[10px] font-mono border uppercase tracking-wider whitespace-nowrap ${tierStyle.bg} ${tierStyle.color} ${tierStyle.border}`}
-                        >
-                          {member.tier}
-                        </span>
+                        <div className="h-3 md:h-4 w-12 md:w-16 bg-secondary" />
                       </td>
-                      <td className="p-3 md:p-4 text-right user-select-none border-r border-dashed border-border-dashed">
-                        <div className="font-mono font-bold text-accent text-xs md:text-sm">
-                          <Counter value={displayedScore} />
-                        </div>
+                      <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
+                        <div className="h-3 md:h-4 w-16 md:w-20 bg-secondary ml-auto" />
                       </td>
-                      <td className="p-3 md:p-4 hidden md:table-cell user-select-none border-r border-dashed border-border-dashed">
-                        <div className="flex items-center gap-2 md:gap-3">
-                          <div className="flex-grow h-0.5 md:h-1 bg-secondary overflow-hidden w-20 md:w-24">
-                            <div
-                              className="h-full"
-                              style={{
-                                width: `${member.impact}%`,
-                                backgroundColor:
-                                  TIER_BAR_COLORS[
-                                  member.tier as keyof typeof TIER_BAR_COLORS
-                                  ],
-                              }}
-                            />
-                          </div>
-                          <span className="text-[9px] md:text-[10px] font-mono text-muted-foreground w-8">
-                            {member.impact}%
-                          </span>
-                        </div>
+                      <td className="p-3 md:p-4 border-r border-dashed border-border-dashed hidden md:table-cell">
+                        <div className="h-3 md:h-4 w-20 md:w-24 bg-secondary" />
                       </td>
-                      <td className="p-3 md:p-4 hidden lg:table-cell user-select-none border-r border-dashed border-border-dashed">
-                        <div className="flex items-center gap-2 md:gap-3 text-[9px] md:text-[10px] font-mono">
-                          <span className="text-accent">
-                            +{member.additions.toLocaleString()}
-                          </span>
-                          <span className="text-red-400">
-                            -{member.deletions.toLocaleString()}
-                          </span>
-                        </div>
+                      <td className="p-3 md:p-4 border-r border-dashed border-border-dashed hidden lg:table-cell">
+                        <div className="h-3 md:h-4 w-32 md:w-40 bg-secondary" />
                       </td>
-                      <td className="p-3 md:p-4 hidden lg:table-cell user-select-none">
-                        <BadgeList badges={member.badges} />
+                      <td className="p-3 md:p-4 hidden lg:table-cell">
+                        <div className="h-3 md:h-4 w-32 md:w-40 bg-secondary" />
                       </td>
                     </tr>
-                  );
-                })}
+                  ))
+                : sortedMembers.map((member, index) => {
+                    const tierStyle =
+                      TIER_COLORS[member.tier as keyof typeof TIER_COLORS];
+                    const globalRank = startIndex + index + 1;
+                    const displayedScore = getScoreByMode(member, mode);
+                    const displayedContributions = getContributionsByMode(
+                      member,
+                      mode
+                    );
+                    return (
+                      <tr
+                        key={member.id}
+                        className="group hover:bg-secondary/20 transition-colors"
+                      >
+                        <td className="p-3 md:p-4 font-mono text-muted-foreground user-select-none border-r border-dashed border-border-dashed text-center">
+                          <div className="text-[10px] md:text-xs">
+                            {globalRank.toString().padStart(2, "0")}
+                          </div>
+                        </td>
+                        <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
+                          <a
+                            href={`https://github.com/${member.github}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity"
+                          >
+                            <img
+                              src={member.avatar}
+                              alt={member.name}
+                              className="w-8 h-8 md:w-10 md:h-10 border border-border grayscale group-hover:grayscale-0 transition-all select-none flex-shrink-0"
+                              referrerPolicy="no-referrer"
+                              draggable={false}
+                            />
+                            <div>
+                              <p className="font-bold text-foreground text-xs md:text-sm tracking-tight break-all">
+                                {member.name}
+                              </p>
+                              <div className="flex flex-wrap items-center gap-1 text-[9px] md:text-[10px] font-mono text-muted-foreground mt-0.5 md:mt-1 uppercase tracking-wider">
+                                <Github className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                                <span>{member.github}</span>
+                                <span className="mx-0.5 md:mx-1 text-border-dashed">
+                                  /
+                                </span>
+                                <span>
+                                  {displayedContributions.toLocaleString()}{" "}
+                                  CONTRIB
+                                </span>
+                              </div>
+                            </div>
+                          </a>
+                        </td>
+                        <td className="p-3 md:p-4 border-r border-dashed border-border-dashed">
+                          <span
+                            className={`px-1.5 py-0.5 md:px-2 md:py-1 text-[9px] md:text-[10px] font-mono border uppercase tracking-wider whitespace-nowrap ${tierStyle.bg} ${tierStyle.color} ${tierStyle.border}`}
+                          >
+                            {member.tier}
+                          </span>
+                        </td>
+                        <td className="p-3 md:p-4 text-right user-select-none border-r border-dashed border-border-dashed">
+                          <div className="font-mono font-bold text-accent text-xs md:text-sm">
+                            <Counter value={displayedScore} />
+                          </div>
+                        </td>
+                        <td className="p-3 md:p-4 hidden md:table-cell user-select-none border-r border-dashed border-border-dashed">
+                          <div className="flex items-center gap-2 md:gap-3">
+                            <div className="flex-grow h-0.5 md:h-1 bg-secondary overflow-hidden w-20 md:w-24">
+                              <div
+                                className="h-full"
+                                style={{
+                                  width: `${member.impact}%`,
+                                  backgroundColor:
+                                    TIER_BAR_COLORS[
+                                      member.tier as keyof typeof TIER_BAR_COLORS
+                                    ],
+                                }}
+                              />
+                            </div>
+                            <span className="text-[9px] md:text-[10px] font-mono text-muted-foreground w-8">
+                              {member.impact}%
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-3 md:p-4 hidden lg:table-cell user-select-none border-r border-dashed border-border-dashed">
+                          <div className="flex items-center gap-2 md:gap-3 text-[9px] md:text-[10px] font-mono">
+                            <span className="text-accent">
+                              +{member.additions.toLocaleString()}
+                            </span>
+                            <span className="text-red-400">
+                              -{member.deletions.toLocaleString()}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-3 md:p-4 hidden lg:table-cell user-select-none">
+                          <BadgeList badges={member.badges} />
+                        </td>
+                      </tr>
+                    );
+                  })}
             </tbody>
           </table>
         </div>

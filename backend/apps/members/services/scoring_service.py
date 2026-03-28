@@ -16,9 +16,9 @@ Architecture:
 
 from __future__ import annotations
 
-from datetime import datetime, time, timedelta
 import logging
 from abc import ABC, abstractmethod
+from datetime import datetime, time, timedelta
 from decimal import Decimal
 
 from django.db.models import Sum
@@ -280,15 +280,23 @@ class ScoringService:
         )
 
         contribution_score = (
-            Decimal(contribution_count) * ComprehensiveScoringStrategy.CONTRIBUTION_WEIGHT
+            Decimal(contribution_count)
+            * ComprehensiveScoringStrategy.CONTRIBUTION_WEIGHT
         )
-        additions_score = Decimal(additions) * ComprehensiveScoringStrategy.ADDITIONS_WEIGHT
-        deletions_score = Decimal(deletions) * ComprehensiveScoringStrategy.DELETIONS_WEIGHT
+        additions_score = (
+            Decimal(additions) * ComprehensiveScoringStrategy.ADDITIONS_WEIGHT
+        )
+        deletions_score = (
+            Decimal(deletions) * ComprehensiveScoringStrategy.DELETIONS_WEIGHT
+        )
         issue_score = Decimal(issue_count) * ComprehensiveScoringStrategy.ISSUE_WEIGHT
 
         return {
             "contributions_count": contribution_count,
-            "score": contribution_score + additions_score + deletions_score + issue_score,
+            "score": contribution_score
+            + additions_score
+            + deletions_score
+            + issue_score,
         }
 
     def calculate_score(self, member: Member) -> Decimal:

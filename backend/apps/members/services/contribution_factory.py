@@ -253,9 +253,7 @@ class ContributionFactory:
 
             update_fields = ["points", "additions", "deletions", "updated_at"]
             update_fields.extend(period_metrics.keys())
-            contribution.save(
-                update_fields=update_fields
-            )
+            contribution.save(update_fields=update_fields)
 
         return contribution, created
 

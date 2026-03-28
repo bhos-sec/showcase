@@ -21,7 +21,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import httpx
 from django.conf import settings
@@ -116,7 +116,7 @@ class GitHubProfileService:
         Values are recomputed on each sync, so they naturally reset when a new
         week or month starts.
         """
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         start_of_week = (now - timedelta(days=now.weekday())).replace(
             hour=0,
             minute=0,
@@ -127,7 +127,7 @@ class GitHubProfileService:
 
         weekly_cutoff = int(start_of_week.timestamp())
         monthly_cutoff = int(start_of_month.timestamp())
-    
+
         total_commits = self._safe_int(total_commits_hint)
         if total_commits <= 0:
             total_commits = sum(self._safe_int(w.get("c")) for w in weeks)
@@ -694,7 +694,6 @@ class GitHubProfileService:
                     monthly_commits=window_stats["monthly_commits"],
                     monthly_additions=window_stats["monthly_additions"],
                     monthly_deletions=window_stats["monthly_deletions"],
-
                 )
                 if created:
                     created_total += 1
